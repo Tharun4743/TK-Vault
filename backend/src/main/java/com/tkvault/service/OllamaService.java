@@ -247,11 +247,13 @@ public class OllamaService {
         }
 
         if (context.isEmpty()) {
+            log.debug("[TK-VAULT Native RAG] No context available for query: {}", question);
             String answer = "I don't have information about this in the loaded documents.";
             streamTokens(answer, tokenConsumer);
             return;
         }
 
+        log.debug("[TK-VAULT Native RAG] Synthesizing grounded response for query: {}", question);
         StringBuilder response = new StringBuilder();
         response.append("### Grounded Retrieval Response\n\n");
         response.append("Based on the indexed document context:\n\n");
@@ -280,7 +282,6 @@ public class OllamaService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public float[] embed(String text) {
         return getFallbackVector(text);
     }

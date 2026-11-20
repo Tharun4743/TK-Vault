@@ -3,12 +3,10 @@ package com.tkvault.websocket;
 import com.tkvault.model.Chat;
 import com.tkvault.model.SearchResult;
 import com.tkvault.repository.ChatRepository;
-import com.tkvault.repository.DocumentRepository;
 import com.tkvault.retrieval.BM25Engine;
 import com.tkvault.service.AuditLogService;
 import com.tkvault.service.ChromaDBService;
 import com.tkvault.service.EmbeddingService;
-import com.tkvault.service.OllamaService;
 import com.tkvault.service.PythonAiClient;
 import com.tkvault.service.SettingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,9 +30,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ChromaDBService chromaDBService;
     private final BM25Engine bm25Engine;
     private final PythonAiClient pythonAiClient;
-    private final OllamaService ollamaService;
     private final ChatRepository chatRepository;
-    private final DocumentRepository documentRepository;
     private final SettingService settingService;
     private final AuditLogService auditLogService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -43,18 +39,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                                  ChromaDBService chromaDBService,
                                  BM25Engine bm25Engine,
                                  PythonAiClient pythonAiClient,
-                                 OllamaService ollamaService,
                                  ChatRepository chatRepository,
-                                 DocumentRepository documentRepository,
                                  SettingService settingService,
                                  AuditLogService auditLogService) {
         this.embeddingService = embeddingService;
         this.chromaDBService = chromaDBService;
         this.bm25Engine = bm25Engine;
         this.pythonAiClient = pythonAiClient;
-        this.ollamaService = ollamaService;
         this.chatRepository = chatRepository;
-        this.documentRepository = documentRepository;
         this.settingService = settingService;
         this.auditLogService = auditLogService;
     }

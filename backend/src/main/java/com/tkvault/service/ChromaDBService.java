@@ -168,7 +168,6 @@ public class ChromaDBService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<SearchResult> query(String collectionId, float[] queryEmbedding, int topK) {
         return query(collectionId, queryEmbedding, topK, null);
     }
