@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="desktop/assets/logo.jpg" width="115" style="border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 12px;" alt="TK-Vault Logo" />
+<img src="assets/logo.jpg" width="115" style="border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 12px;" alt="TK-Vault Logo" />
 
 ![Java](https://img.shields.io/badge/Java-17%20%7C%2021-orange.svg?style=flat-square&logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Backend-Spring%20Boot%203.3.0-brightgreen.svg?style=flat-square&logo=springboot)
@@ -159,12 +159,8 @@ TK-Vault/
 │   ├── __init__.py
 │   └── server.py                    # FastAPI server on port 5000
 │
-├── desktop/                         # Electron Desktop Application Shell
-│   ├── assets/                      # Application icons & branding assets
-│   ├── scripts/                     # Cross-platform build automation scripts
-│   ├── package.json                 # Desktop dependencies & electron-builder
-│   ├── main.js                      # Electron main process & supervisor
-│   └── preload.js                   # Secure context-isolated IPC bridge
+├── assets/                          # Executive branding & identity assets
+│   └── logo.jpg                     # Official TK-Vault brand avatar
 │
 ├── tools/                           # Bundled Build Utilities
 │   └── apache-maven-3.9.6/          # Portable Maven runtime
@@ -264,7 +260,7 @@ npm run dev
 <table border="0" itemscope itemtype="https://schema.org/Person">
   <tr>
     <td width="130" align="center" valign="middle">
-      <img src="desktop/assets/logo.jpg" width="105" style="border-radius: 6px;" alt="Tharunkumar K — Full Stack Developer & AI Systems Engineer at V.S.B. Engineering College" title="Tharunkumar K — V.S.B. Engineering College (VSBEC)" itemprop="image" />
+      <img src="assets/logo.jpg" width="105" style="border-radius: 6px;" alt="Tharunkumar K — Full Stack Developer & AI Systems Engineer at V.S.B. Engineering College" title="Tharunkumar K — V.S.B. Engineering College (VSBEC)" itemprop="image" />
     </td>
     <td>
       <h3 itemprop="name">Tharunkumar K</h3>
