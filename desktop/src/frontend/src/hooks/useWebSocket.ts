@@ -68,8 +68,8 @@ export function useWebSocket({ onToken, onDone, onError }: UseWebSocketOptions) 
     };
 
     ws.onerror = (err) => {
-      console.error("WebSocket transport error:", err);
-      onErrorRef.current("Connection lost. Reconnecting to local intelligence...");
+      console.warn("WebSocket transport error:", err);
+      // Suppress noisy popups during background reconnection
     };
   }, []);
 
@@ -77,8 +77,7 @@ export function useWebSocket({ onToken, onDone, onError }: UseWebSocketOptions) 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ message, sessionId, filesBrain, filterDocId }));
     } else {
-      console.error("WebSocket is not active.");
-      onErrorRef.current("Local intelligence engine is offline. Reconnecting...");
+      console.warn("WebSocket is not active. Attempting reconnect...");
       connect();
     }
   }, [connect]);

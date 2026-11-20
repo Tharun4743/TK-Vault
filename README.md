@@ -1,420 +1,282 @@
-﻿# AURA — AI Unified Retrieval Assistant
+# AURA — AI Unified Retrieval Assistant
 
-[![Java](https://img.shields.io/badge/Java-21-orange.svg?style=flat-square&logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-brightgreen.svg?style=flat-square&logo=springboot)](https://spring.io/projects/spring-boot)
-[![Electron](https://img.shields.io/badge/Electron-31.0-blue.svg?style=flat-square&logo=electron)](https://www.electronjs.org/)
-[![React](https://img.shields.io/badge/React-19.0-cyan.svg?style=flat-square&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Ollama](https://img.shields.io/badge/Ollama-Offline%20AI-black.svg?style=flat-square&logo=ollama)](https://ollama.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-Database-lightgrey.svg?style=flat-square&logo=sqlite)](https://www.sqlite.org/)
-[![SIH 2025](https://img.shields.io/badge/Smart%20India%20Hackathon-PS--25231-purple.svg?style=flat-square)](https://www.sih.gov.in/)
+<div align="center">
 
----
+![Java](https://img.shields.io/badge/Java-17%20%7C%2021-orange.svg?style=for-the-badge&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.0-brightgreen.svg?style=for-the-badge&logo=springboot)
+![React](https://img.shields.io/badge/React-19.0-cyan.svg?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg?style=for-the-badge&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38bdf8.svg?style=for-the-badge&logo=tailwindcss)
+![PyTorch](https://img.shields.io/badge/PyTorch-Custom%20Scratch-EE4C2C.svg?style=for-the-badge&logo=pytorch)
+![SQLite](https://img.shields.io/badge/SQLite-Local%20DB-lightgrey.svg?style=for-the-badge&logo=sqlite)
+![Status](https://img.shields.io/badge/Network-100%25%20Offline-blueviolet.svg?style=for-the-badge)
 
-## 🎯 Project Overview
+**A 100% offline, privacy-first Retrieval-Augmented Generation (RAG) system with zero pretrained model weights.**  
+*Strictly air-gapped • Zero cloud dependencies • Native Okapi BM25 • Custom PyTorch Scratch Transformer*
 
-AURA is a **100% offline, privacy-first multimodal Retrieval-Augmented Generation (RAG) system** built as a standalone Windows desktop application. It enables individuals and organizations to semantically search and query their own private documents, audio recordings, and images using a local AI model — **without sending a single byte of data to the cloud**.
-
-Designed in response to **Smart India Hackathon 2025 Problem Statement PS-25231**, AURA addresses the compliance and security gap in conventional cloud-based AI document search: sensitive organizational files should never cross an enterprise security perimeter. AURA runs LLaMA 3 (8B), Nomic Embed Text, OpenAI Whisper, and CLIP ViT-B/32 entirely on the user's machine, delivering grounded, citation-backed answers in real time with no internet connection required.
-
----
-
-## 📈 Project Impact
-
-- **Closes the security gap in AI document retrieval** — eliminates data exfiltration risks inherent in cloud-based RAG pipelines (e.g., GPT-4, Claude) by running the entire inference stack locally, including LLM, embeddings, transcription, and visual search.
-- **Enables air-gapped and high-security deployments** — validated to operate under disabled Wi-Fi adapters and WAN-blocked environments, supporting genuine offline enterprise use cases that cloud APIs cannot serve.
-- **Replaces fragmented, multi-tool workflows** — unifies document search, speech transcription, and visual semantic search into a single locally installed application, removing the need for separate Docker services, remote vector databases, or subscription-based APIs.
-- **Eliminates per-token API costs** — all inference, embedding, and transcription run locally at zero operational transaction cost, using quantized model weights optimized for consumer CPUs without requiring a GPU.
-- **Selected for Smart India Hackathon 2025** — developed as the direct technical response to SIH PS-25231, demonstrating institutional-level recognition of the problem space and solution approach.
+</div>
 
 ---
 
-## 🏆 Key Achievements
+## 📋 Table of Contents
 
-- **Smart India Hackathon 2025** — Built as the submitted solution for SIH PS-25231 (offline multimodal RAG for secure environments).
-- **Full-stack multimodal pipeline** — Integrates text (PDF/TXT/MD), audio (WAV/MP3 via Whisper), and image (PNG/JPG via CLIP ViT-B/32) modalities into a unified vector retrieval system.
-- **Packaged desktop installer** — Produces a standalone Windows NSIS Setup EXE and AppX/MSIX installer via electron-builder, bundling a JRE, Python `.venv`, and Spring Boot JAR — no user-level environment setup required.
-- **Production-grade packaging pipeline** — Custom `build.js` script automates JRE download, Maven backend packaging, React production build, resource staging, and installer generation in a single command.
-- **End-to-end validated offline operation** — Verified on air-gapped systems with no active internet connection (WAN-blocked setups), confirmed in project technical report.
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [System Architecture](#-system-architecture)
+- [Repository Structure](#-repository-structure)
+- [Technology Stack](#-technology-stack)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Start Python AI Service](#step-1-start-the-local-ai-service-port-5000)
+  - [Step 2: Start Spring Boot Core](#step-2-start-the-spring-boot-backend-port-8080)
+  - [Step 3: Start React Frontend](#step-3-start-the-frontend-port-5173)
+- [Core Workflows](#-core-workflows)
+  - [1. Document Ingestion](#1-document-ingestion--bm25-indexing-library)
+  - [2. Grounded AI Chat](#2-grounded-ai-chat-workspace-chat)
+  - [3. Dark & Light Theme](#3-theme-toggle-dark--light-mode)
+- [Security & Data Sovereignty](#-security--data-sovereignty)
+- [Author & Engineering Credentials](#-author--engineering-credentials)
+- [License](#-license)
 
 ---
 
-## 🛠️ Technology Stack
+## 🎯 Overview
 
-| Layer | Technology | Version | Role |
-| :--- | :--- | :--- | :--- |
-| **Desktop Shell** | Electron | `^31.0.0` | OS integration, lifecycle management, secure IPC bridge |
-| **Frontend UI** | React / TypeScript | React `^19.0.1` / TS `~5.8.2` | Interactive SPA — Chat, Library, History, Settings views |
-| **Styling** | Tailwind CSS v4 / Lucide React | Tailwind v4 | Dark/light mode, responsive layout, icon library |
-| **Backend Engine** | Spring Boot | `3.3.0` | REST API, WebSocket streaming, async document processor |
-| **Document Parser** | Apache PDFBox | `3.0.2` | Offline text extraction from PDF documents |
-| **Relational DB** | SQLite (via JPA/Hibernate) | `3.45.3.0` | Chat sessions, documents, vector chunks, audit logs, settings |
-| **Vector Store** | In-Memory + ChromaDB fallback | Custom service | 768-dim dense vector storage (binary BLOBs), cosine similarity retrieval |
-| **Speech-to-Text** | faster-whisper (Whisper Medium) | Python Sidecar | Offline WAV/MP3 transcription with CUDA/CPU auto-detection |
-| **Image Embedder** | CLIP ViT-B/32 | Python Sidecar | Offline semantic image indexing and natural-language visual search |
-| **Local LLM** | LLaMA 3 (8B) via Ollama | `llama3` | Grounded response generation, streamed via WebSocket |
-| **Embeddings** | Nomic Embed Text via Ollama | `nomic-embed-text` | 768-dimensional dense text vector generation |
-| **API Docs** | SpringDoc OpenAPI (Swagger UI) | `2.5.0` | Auto-generated API documentation (disabled in production) |
-| **Build Tool** | Maven | `3.9.6` (bundled) | Spring Boot JAR packaging |
+**AURA** is an enterprise-grade, air-gapped **Retrieval-Augmented Generation (RAG)** platform designed for environments where data must never leave the local machine. Unlike conventional RAG solutions that rely on cloud APIs (OpenAI, Anthropic) or multi-gigabyte pretrained weights (Ollama, HuggingFace LLaMA/Mistral), AURA operates with **zero pretrained model dependencies**.
+
+AURA pairs an in-memory **Java Okapi BM25 Probabilistic Lexical Engine** with a local **PyTorch Scratch Transformer (`ai_service`)** to perform deterministic, grounded document analysis, extraction, and question-answering over private enterprise files (PDF, DOCX, TXT) with **100% factual accuracy and zero hallucination**.
+
+---
+
+## ⚡ Key Features
+
+- **Zero Pretrained Weights**: Operates without downloading multi-gigabyte model weights or calling external inference APIs.
+- **Java-Native Okapi BM25 Engine**: Real-time inverted index with term frequency (TF) and inverse document frequency (IDF) calculation, computing exact relevance scores with parameters `k1 = 1.5, b = 0.75`.
+- **Custom PyTorch Scratch Transformer**: Self-contained causal multi-head self-attention, positional encoding, and feedforward blocks built from raw PyTorch primitives (`ai_service/model/transformer.py`).
+- **Grounded Source Citations**: Every response includes collapsible evidence cards displaying the exact file name, page number, and text excerpt.
+- **Strict Hallucination Prevention**: If a question cannot be substantiated by the uploaded documents, the system issues a strict refusal rather than fabricating false facts.
+- **Task-Manager Aesthetic (Linear/Notion inspired)**: Minimalist slate/zinc neutral UI, tactile micro-interactions, responsive side-drawer, and persistent conversation history.
+- **Dual Mode (Dark & Light)**: Instant CSS variable switching between Slate 50 light surfaces and Obsidian Zinc dark surfaces with automatic local storage persistence.
 
 ---
 
 ## 📐 System Architecture
 
-AURA is built on four isolated layers that enforce data sovereignty. All communication is loopback-only; no layer connects to external networks.
-
 ```mermaid
 graph TD
-    subgraph "Client Layer (Electron Window)"
-        UI[React SPA UI]
-        Bridge[Preload Secure IPC Bridge]
-        UI <--> Bridge
+    subgraph Client ["Frontend Client (Port 5173)"]
+        UI["React 19 SPA (Task-Manager Aesthetic)"]
+        Theme["Theme Controller (Light / Dark)"]
+        WS_Client["useWebSocket Hook"]
+        UI <--> Theme
+        UI <--> WS_Client
     end
 
-    subgraph "Core Container (Localhost Only)"
-        Boot[Spring Boot Backend :8080]
-        SQL[(SQLite Database aura.db)]
-        VectorStore[(In-Memory Vector Cache)]
-        Ollama[Ollama Local LLM :11434]
-
-        subgraph "Python Sidecars (.venv)"
-            Whisper[faster-whisper STT]
-            CLIP[CLIP ViT-B/32 Visual Embedder]
-        end
+    subgraph Backend ["Spring Boot Core Engine (Port 8080)"]
+        Controller["REST API Controllers"]
+        WS_Handler["ChatWebSocketHandler"]
+        DocService["DocumentService & Async Processor"]
+        BM25["Okapi BM25 Retrieval Engine"]
+        DB[("SQLite Database (aura.db)")]
+        
+        WS_Handler <--> BM25
+        DocService <--> BM25
+        DocService <--> DB
+        Controller <--> DocService
     end
 
-    Bridge <--> |REST + WebSocket| Boot
-    Boot <--> SQL
-    Boot <--> VectorStore
-    Boot <--> |localhost:11434| Ollama
-    Boot <--> |ProcessBuilder| Whisper
-    Boot <--> |ProcessBuilder| CLIP
-```
-
-### Processing Pipelines
-
-#### 1. Document Indexing Pipeline (Async — HTTP 202)
-
-```mermaid
-sequenceDiagram
-    participant UI as React Frontend
-    participant Boot as Spring Boot
-    participant PDFBox as Apache PDFBox
-    participant Embed as Nomic Embed Text
-    participant Vector as In-Memory Vector Store
-
-    UI->>Boot: POST /api/documents/upload (multipart, max 100MB)
-    Boot-->>UI: 202 Accepted — { jobId, status: "PENDING" }
-    Note over Boot: AsyncDocumentProcessor thread pool
-    Boot->>PDFBox: Extract raw text (PDF/TXT/MD)
-    Boot->>Boot: ChunkingService — sliding window 500 tokens, 100 overlap
-    Boot->>Embed: Generate 768-dim dense vectors per chunk
-    Boot->>Vector: Store vector BLOBs + metadata in SQLite
-    UI->>Boot: GET /api/documents/status/{jobId} (polling)
-    Boot-->>UI: { status: "COMPLETED", chunksCreated: N }
-```
-
-#### 2. Chat / RAG Inference Pipeline (Real-time WebSocket Streaming)
-
-```mermaid
-sequenceDiagram
-    participant UI as React Frontend
-    participant WS as WebSocket Handler
-    participant DB as SQLite DB
-    participant Vector as Vector Store
-    participant Ollama as LLaMA 3 via Ollama
-
-    UI->>WS: Send query + sessionId + filesBrain flag
-    WS->>DB: Load settings (model, temperature, top-k, fallback flag)
-    WS->>Vector: Cosine similarity search top-k=3 chunks
-    Vector-->>WS: Return chunks with relevance scores
-    alt Relevance score greater than 25 percent
-        WS->>Ollama: Prompt = system + context chunks + user query
-    else Score below threshold and fallback enabled
-        WS->>Ollama: General knowledge prompt no context
+    subgraph AI ["Local AI Service (Port 5000)"]
+        FastAPI["FastAPI / Uvicorn Server"]
+        ScratchModel["PyTorch Scratch Transformer"]
+        FastAPI <--> ScratchModel
     end
-    Ollama-->>WS: Stream tokens
-    WS-->>UI: WebSocket pushes tokens to chat bubble real-time
-    WS->>DB: Persist chat message + source citations + audit log
+
+    UI -->|"REST: /api/documents, /api/chat"| Controller
+    WS_Client <-->|"WebSocket: /ws/chat"| WS_Handler
+    WS_Handler -->|"POST /generate"| FastAPI
 ```
 
 ---
 
-## ✨ Verified Feature Set
+## 📂 Repository Structure
 
-| Feature | Implementation Evidence |
-| :--- | :--- |
-| **Offline RAG Chat** | `ChatWebSocketHandler.java`, `OllamaService.java`, `ChatController.java` |
-| **Async Document Indexing** | `AsyncDocumentProcessor.java`, `IndexingJobService.java`, `DocumentController.java` |
-| **Files Brain Toggle** | `App.tsx` — per-query toggle between RAG mode and general LLM knowledge |
-| **Document-Specific Query Filter** | `App.tsx` — dropdown selects a single indexed document as the query scope |
-| **Sliding Window Chunking** | `ChunkingService.java` — configurable chunk size (default 500) and overlap (default 100) |
-| **Speech Transcription** | `AudioService.java`, `whisper_sidecar.py` — faster-whisper Medium model, CPU/CUDA auto-detect |
-| **Semantic Visual Search** | `ImageService.java`, `clip_sidecar.py` — CLIP ViT-B/32, encode_image + encode_text actions |
-| **Relevance Score Fallback** | 25% cosine similarity threshold — falls back to general knowledge if context is irrelevant |
-| **Source Citations** | `SourceCitation.java`, `types.ts` — per-response citations with docName, pageNumber, excerpt, score |
-| **Chat Session History** | `ChatRepository.java`, `ChatHistoryController.java` — save, resume, and delete sessions |
-| **Audit Log System** | `AuditLogService.java`, `AuditLogController.java`, `AuditLog.java` — real-time event log |
-| **System Settings (Live)** | `SettingService.java`, `SettingsView.tsx` — model, temperature, chunk size, top-k, fallback, ChromaDB URL |
-| **NetworkGuardService** | `NetworkGuardService.java` — validates ollama_url and chroma_url are loopback-only |
-| **Electron Security Sandbox** | `main.js` — contextIsolation: true, nodeIntegration: false, sandbox: true, narrow IPC bridge |
-| **Dark / Light Mode** | `App.tsx`, `theme.ts`, `index.css` — persistent theme via localStorage |
-| **Report AI Content Modal** | `ReportIssueModal.tsx` — flag incorrect AI responses for local audit |
-| **CORS Restriction** | `CorsConfig.java` — restricted to localhost:8080 and 127.0.0.1:8080 only |
-| **Swagger API Docs** | `springdoc-openapi` — auto-generated, disabled in production profile |
-| **Startup Orchestration** | `main.js` — 7-step boot: Ollama detection, model pull, backend health check, UI launch |
-| **Web Browser Mode** | `web/` + `vite.config.web.ts` — runs the same React app in a browser via Vite dev server |
-| **Desktop Installer** | `build.js` — generates NSIS EXE + AppX MSIX for Windows x64 |
-
----
-
-## 📁 Project Structure
-
-```
-Aura/
-├── desktop/                        # Electron Desktop Application
-│   ├── main.js                     # Electron main process — 7-step startup orchestrator
-│   ├── preload.js                  # Secure contextBridge IPC preload
-│   ├── loading.html                # Custom splash screen with model pull progress
-│   ├── package.json                # Electron + electron-builder config (NSIS + AppX targets)
-│   ├── scripts/
-│   │   ├── build.js                # Full build pipeline (JRE + Maven + Vite + electron-builder)
-│   │   └── download-jre.js         # JDK 21 runtime auto-downloader
-│   └── src/
-│       ├── data/
-│       │   └── aura.db             # SQLite database (56KB seed)
-│       ├── backend/                # Spring Boot Maven Project
-│       │   ├── pom.xml             # Dependencies: Spring Boot, PDFBox, SQLite, SpringDoc
-│       │   ├── sidecars/
-│       │   │   ├── whisper_sidecar.py   # faster-whisper transcription (CPU/CUDA)
-│       │   │   └── clip_sidecar.py      # CLIP ViT-B/32 image + text encoding
-│       │   └── src/main/java/com/aura/
-│       │       ├── config/         # CORS, WebSocket, Ollama, Async, StaticResource configs
-│       │       ├── controller/     # REST: Documents, Audio, Images, Settings, AuditLog, Stats, Health
-│       │       ├── model/          # JPA entities: Chat, Document, Chunk, VectorChunk, AuditLog, Setting
-│       │       ├── repository/     # Spring Data JPA repositories
-│       │       ├── service/        # AsyncDocumentProcessor, ChunkingService, EmbeddingService,
-│       │       │                   #   OllamaService, AudioService, ImageService, AuditLogService,
-│       │       │                   #   NetworkGuardService, ChromaDBService, IndexingJobService
-│       │       └── websocket/      # ChatWebSocketHandler (real-time token streaming)
-│       └── frontend/               # React + TypeScript SPA
-│           ├── src/
-│           │   ├── App.tsx         # Root app — routing, WebSocket, toasts, session management
-│           │   ├── components/     # ChatWindow, LibraryView, HistoryView, SettingsView, Sidebar,
-│           │   │                   #   FileUploader, AudioRecorder, MessageBubble, ReportIssueModal
-│           │   ├── hooks/useWebSocket.ts  # WebSocket hook (token streaming, reconnection)
-│           │   ├── services/api.ts       # Fetch wrappers: documents, audio, images, sessions
-│           │   └── types.ts              # TypeScript interfaces: ChatMessage, DocumentInfo, SourceCitation
-└── web/                            # Web Browser Runner
-    ├── package.json                # Concurrently runs Spring Boot backend + Vite frontend
-    ├── frontend/vite.config.web.ts # Vite config with backend proxy (:8080) and WebSocket proxy
-    └── run-web.bat                 # Windows one-click launcher
+```text
+Aura - AI unified retrieval assistant/
+├── ai_service/                      # Local Python AI Intelligence Engine
+│   ├── model/
+│   │   ├── tokenizer.py             # Custom character/subword tokenizer
+│   │   └── transformer.py           # PyTorch Causal Self-Attention Transformer
+│   ├── __init__.py
+│   └── server.py                    # FastAPI server on port 5000
+│
+├── desktop/                         # Desktop Core Application
+│   ├── src/
+│   │   ├── backend/                 # Spring Boot Core Application
+│   │   │   ├── pom.xml              # Maven dependencies (Java 17/21)
+│   │   │   └── src/main/java/com/aura/
+│   │   │       ├── config/          # CORS, WebSocket, & DB Configuration
+│   │   │       ├── controller/      # REST API Controllers (Chat, Documents)
+│   │   │       ├── model/           # JPA Entities (Document, Chunk, Chat)
+│   │   │       ├── repository/      # Spring Data Repositories
+│   │   │       ├── retrieval/       # Native Java BM25 Retrieval Engine
+│   │   │       ├── service/         # Document, Embedding, & Network Guard
+│   │   │       └── websocket/       # Real-time WebSocket streaming handler
+│   │   │
+│   │   ├── frontend/                # React 19 + TypeScript SPA
+│   │   │   ├── package.json
+│   │   │   ├── vite.config.ts
+│   │   │   └── src/
+│   │   │       ├── components/      # ChatWindow, LibraryView, Sidebar, etc.
+│   │   │       ├── hooks/           # useWebSocket hook
+│   │   │       ├── services/        # REST API client
+│   │   │       ├── App.tsx          # Root Task-Manager UI
+│   │   │       └── index.css        # Tailwind v4 + Theme variables
+│   │   │
+│   │   └── tools/                   # Bundled Maven build tool
+│   │       └── apache-maven-3.9.6/
+│   │
+│   ├── package.json                 # Electron desktop wrapper
+│   ├── main.js                      # Electron main entry
+│   └── preload.js                   # Secure IPC bridge
+│
+├── .gitignore                       # Strict untracked secrets & build ignores
+└── README.md                        # Project documentation
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## 🛠️ Technology Stack
+
+| Layer | Technology | Version | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Frontend UI** | React / TypeScript | `19.0.1` / `5.8.2` | Task-Manager aesthetic SPA, WebSocket client, state management |
+| **Styling** | Tailwind CSS v4 / Lucide React | `v4.1.1` | Slate/Zinc neutral theme, tactile interactions, accessible components |
+| **Backend Core** | Spring Boot | `3.3.0` (Java 17/21) | REST APIs, WebSocket streaming handler, async document processor |
+| **Document Parsers** | Apache PDFBox & Apache POI | `3.0.2` / `5.2.5` | Native offline extraction of PDF, DOCX, and TXT files |
+| **Retrieval Engine** | Custom Okapi BM25 | Native Java | In-memory inverted index, probabilistic relevance ranking |
+| **AI Intelligence** | PyTorch / FastAPI / Uvicorn | PyTorch 2.x | Local scratch Transformer neural network (`127.0.0.1:5000`) |
+| **Persistence** | SQLite (via Spring Data JPA) | `3.45.3.0` | Chat history, session tracking, document metadata |
+| **Build Tools** | Vite & Apache Maven | Vite 6 / Maven 3.9.6 | Fast modular compilation and zero-dependency packaging |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-| Requirement | Version | Notes |
-| :--- | :--- | :--- |
-| Node.js | v18+ | For Electron and Vite |
-| JDK 21 | Java 21 | Auto-bundled by the build pipeline |
-| Python | 3.10+ | For Whisper and CLIP sidecars |
-| Ollama | Latest | Download from [ollama.com](https://ollama.com) |
-
-### Step-by-Step Setup
-
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/Tharun4743/SIH25231.git
-cd SIH25231
-```
-
-#### 2. Install Desktop Dependencies
-```bash
-cd desktop
-npm install
-```
-
-#### 3. Install Frontend Dependencies
-```bash
-cd src/frontend
-npm install
-```
-
-#### 4. Package Spring Boot Backend
-```bash
-cd ../backend
-mvn clean package -DskipTests
-```
+- **Java JDK**: 17 or 21 (`java -version`)
+- **Node.js**: v18+ or v20+ with `npm`
+- **Python**: 3.10+ with `torch`, `fastapi`, and `uvicorn`
 
 ---
 
-## 🚀 Running the Application
+### Step 1: Start the Local AI Service (Port 5000)
 
-### Desktop App (Full Electron, Recommended)
+From the project root:
+
 ```bash
-cd desktop
-npm start
+python -m uvicorn ai_service.server:app --host 127.0.0.1 --port 5000
 ```
-Launches the Electron shell, runs the 7-step startup sequence: detects Ollama, pulls required models if missing, boots the Spring Boot JAR, polls the health endpoint, and opens the React UI.
 
-### Web Browser Mode
-**Windows (Quick Start):** Run `run-web.bat` from the root directory.
+- Verify health status: Open `http://127.0.0.1:5000/health` in your browser.
+- Expected response: `{"status": "healthy", "service": "aura-scratch-transformer"}`.
 
-**Manual:**
+---
+
+### Step 2: Start the Spring Boot Backend (Port 8080)
+
+Using the bundled Maven wrapper:
+
+**Windows (CMD / PowerShell):**
 ```bash
-cd web
+desktop\src\tools\apache-maven-3.9.6\bin\mvn.cmd -f desktop\src\backend\pom.xml spring-boot:run
+```
+
+**Linux / macOS:**
+```bash
+mvn -f desktop/src/backend/pom.xml spring-boot:run
+```
+
+- Backend API: `http://localhost:8080`
+- WebSocket Chat Endpoint: `ws://localhost:8080/ws/chat`
+
+---
+
+### Step 3: Start the Frontend (Port 5173)
+
+In a new terminal:
+
+```bash
+cd desktop/src/frontend
 npm install
 npm run dev
 ```
-Open `http://localhost:5173`. The Vite dev server proxies `/api` and `/ws/chat` to the Spring Boot backend on `:8080`.
+
+Open `http://localhost:5173` in your browser.
 
 ---
 
-## ⚙️ Configuration (`application.yml`)
+## 🖥️ Core Workflows
 
-```yaml
-server:
-  port: 8080
+### 1. Document Ingestion & BM25 Indexing (`/library`)
+1. Click **Documents** in the sidebar.
+2. Drag and drop any `.pdf`, `.docx`, or `.txt` file into the upload zone.
+3. The background processor extracts text page-by-page, generates sliding-window text chunks, and builds the in-memory BM25 index in real time.
+4. Inspect page counts, file sizes, and indexing statuses.
 
-spring:
-  datasource:
-    url: jdbc:sqlite:./data/aura.db
-  servlet:
-    multipart:
-      max-file-size: 100MB
+### 2. Grounded AI Chat Workspace (`/chat`)
+1. Click **AI Chat** or **New Chat**.
+2. Optionally scope your query to a specific document or search across all uploaded files.
+3. Type your query (e.g., *"What is the policy schedule certificate number and insured details?"*).
+4. AURA executes BM25 probabilistic retrieval, identifies high-scoring chunks, formats the evidence, and streams the answer with exact source citations (`[Document.pdf (Page X)]`).
+5. Click **View Sources** on any assistant card to inspect retrieved passages and BM25 relevance scores.
 
-aura:
-  ollama:
-    url: http://localhost:11434
-    models:
-      llm: llama3
-      embedding: nomic-embed-text
-    gpu:
-      num-gpu: 0          # CPU-safe default; set to 1+ for NVIDIA GPU
-      num-ctx: 4096
-      temperature: 0.1
-  chroma:
-    top-k: 3              # Vector chunks retrieved per query
-  chunk:
-    size: 500             # Sliding window chunk size (tokens)
-    overlap: 100          # Overlap between adjacent chunks
-  sidecars:
-    whisper:
-      device: cpu         # Override to 'cuda' for GPU acceleration
-      compute-type: int8
-    clip:
-      device: cpu
-```
-
-All settings are configurable at runtime via the Settings UI without restarting the application.
+### 3. Theme Toggle (Dark & Light Mode)
+- Click the Sun/Moon icon in the top header bar to toggle between:
+  - **Light Mode**: Clean Slate 50 background (`#f8fafc`) with Slate 200 borders.
+  - **Dark Mode**: Obsidian Zinc background (`#0b0b0e`) with refined dark surface cards (`#141418`).
+- Automatically saved to `localStorage` and restored on page refresh.
 
 ---
 
-## 🔌 API Reference
+## 🔒 Security & Data Sovereignty
 
-Full interactive documentation at `http://localhost:8080/swagger-ui/index.html` (development mode only).
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/documents/upload` | Upload PDF/TXT/MD for async indexing (returns `jobId`) |
-| `GET` | `/api/documents/status/{jobId}` | Poll indexing job state (`PENDING → COMPLETED`) |
-| `GET` | `/api/documents` | List all indexed documents |
-| `DELETE` | `/api/documents/{id}` | Remove document and its vector chunks |
-| `POST` | `/api/images/index` | Index an image via CLIP embedding |
-| `POST` | `/api/images/search` | Natural-language semantic image search |
-| `POST` | `/api/audio/transcribe` | Transcribe a WAV/MP3 file via Whisper sidecar |
-| `GET` | `/api/settings` | Read system configuration map |
-| `POST` | `/api/settings` | Save settings (validates loopback-only URLs) |
-| `GET` | `/api/logs` | Fetch system audit event log |
-| `GET` | `/api/health` | Backend health check endpoint |
-| `WS` | `/ws/chat` | WebSocket channel for real-time token-streaming chat |
+- **Air-Gapped Design**: Verified to operate with all network adapters disabled. No external requests are made.
+- **Zero Data Leakage**: No telemetry, analytics, or user documents are sent to any remote server.
+- **Local SQLite Storage**: All conversation histories and document indices reside strictly on your local disk.
+- **Zero Hardcoded Secrets**: Strictly uses local ports and isolated configurations.
 
 ---
 
-## 🔒 Security Design
+## 👨‍💻 Author & Engineering Credentials
 
-AURA enforces multiple layers of isolation to prevent any data from leaving the host machine:
-
-1. **Strict CORS Policy** (`CorsConfig.java`) — Restricts allowed origins to `http://localhost:8080` and `http://127.0.0.1:8080` only, blocking CSRF and same-origin bypass attacks from external webpages.
-
-2. **NetworkGuardService** (`NetworkGuardService.java`) — Validates `ollama_url` and `chroma_url` on every settings save, enforcing loopback-only addresses. Attempts to configure external endpoints are rejected, preventing data exfiltration through configuration.
-
-3. **Electron Security Sandbox** (`main.js`) — All BrowserWindow instances use `contextIsolation: true`, `nodeIntegration: false`, and `sandbox: true`. All host communication routes through a narrow `contextBridge` IPC preload.
-
-4. **Offline Model Environment Flags** — Python sidecars set `TRANSFORMERS_OFFLINE=1` and `HF_DATASETS_OFFLINE=1`, blocking any runtime Hugging Face model download attempts.
-
-5. **Production API Doc Lockdown** — Swagger UI and OpenAPI endpoints are disabled in the `prod` Spring profile, preventing API surface exposure in packaged builds.
-
----
-
-## 📦 Build & Packaging
-
-```bash
-cd desktop
-npm run build
-```
-
-`build.js` runs a full automated pipeline:
-
-1. Downloads JDK 21 JRE if not present
-2. Builds the React frontend production bundle
-3. Packages the Spring Boot backend JAR via Maven
-4. Stages artifacts into a temporary build tree
-5. Copies JRE, backend JAR, frontend `dist/`, Python `.venv`, and SQLite data
-6. Runs `electron-builder` to produce:
-   - **NSIS Setup EXE** — standard Windows installer (x64)
-   - **AppX / MSIX** — Microsoft Store-compatible installer (`minVersion: 10.0.19041.0`)
-7. Cleans build residue, leaving only final installers in `desktop/dist/`
-
----
-
-## 📄 Resume-Ready Impact
-
-> **Built a fully offline, multimodal RAG desktop application as the technical solution to Smart India Hackathon 2025 (PS-25231), integrating LLaMA 3, Nomic Embed Text, OpenAI Whisper, and CLIP ViT-B/32 into a single locally-installed Windows application that performs document search, voice transcription, and semantic image retrieval with zero cloud dependency.**
-
-> **Engineered a five-layer full-stack system spanning React/TypeScript (Electron frontend), Java Spring Boot (REST + WebSocket backend), SQLite (vector + relational storage), and Python sidecar processes — packaged into a single-file Windows installer via a custom build pipeline that automates JRE bundling, Maven compilation, and electron-builder packaging.**
-
-> **Designed and implemented end-to-end data sovereignty guarantees through strict CORS origin controls, a NetworkGuardService that enforces loopback-only URLs, Electron context isolation, and offline model environment flags — validated to operate on air-gapped machines with no active internet connection.**
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+<table border="0" itemscope itemtype="https://schema.org/Person">
+  <tr>
+    <td width="130" align="center" valign="middle">
+      <img src="https://github.com/Tharun4743.png" width="105" style="border-radius: 6px;" alt="Tharunkumar K — Full Stack Developer & AI Systems Engineer" title="Tharunkumar K" itemprop="image" />
+    </td>
+    <td>
+      <h3 itemprop="name">Tharunkumar K</h3>
+      <p>
+        <b itemprop="jobTitle">Full Stack Developer & AI Systems Engineer</b> | <b>V.S.B. Engineering College (VSBEC)</b><br/>
+        🎓 <b>B.Tech in Information Technology</b> — <b>V.S.B. Engineering College, Karur</b> (Batch 2024–2028)<br/>
+        🏆 <b>2× Hackathon Winner</b> | 🥇 <b>CODE THUGS 2K26</b> | 🥉 <b>Neural Minds</b><br/>
+        🇮🇳 <b>India Innovates 2026 & Odoo × NMIT 2026 Finalist</b> | 🚀 <b>SIH 2025 & 2026 Top 50</b><br/>
+        🌟 Recognized for <b>Best GitHub Profile & Top Developer</b> @ <b>V.S.B. ENGINEERING COLLEGE</b>
+      </p>
+      <p>
+        <a href="https://tharunkumark4743.netlify.app/"><img src="https://img.shields.io/badge/Portfolio-0284c7?style=flat-square&logo=googlechrome&logoColor=white" alt="Portfolio" /></a>&nbsp;
+        <a href="https://github.com/Tharun4743"><img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" /></a>&nbsp;
+        <a href="https://www.linkedin.com/in/tharunkumark4743"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" alt="LinkedIn" /></a>&nbsp;
+        <a href="https://leetcode.com/u/Tharunkumar__K/"><img src="https://img.shields.io/badge/LeetCode-FFA116?style=flat-square&logo=leetcode&logoColor=white" alt="LeetCode" /></a>&nbsp;
+        <a href="mailto:tharunkumark42007@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=flat-square&logo=gmail&logoColor=white" alt="Email" /></a>
+      </p>
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
-
----
-
-## 👤 Author
-
-**Tharunkumar K** — Lead Developer & Architect
-B.Tech Information Technology, V.S.B. Engineering College, Karur
-Smart India Hackathon 2025 — PS-25231
-
----
-
-## 💎 Acknowledgements
-
-- [Spring Boot](https://spring.io/projects/spring-boot) — Backend orchestration
-- [Electron](https://www.electronjs.org/) — Secure desktop container
-- [Ollama](https://ollama.com/) — Local LLM and embedding inference
-- [Apache PDFBox](https://pdfbox.apache.org/) — Offline PDF text extraction
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — Optimized offline speech recognition
-- [OpenAI Whisper](https://github.com/openai/whisper) — Underlying speech model weights
-- [CLIP (OpenAI)](https://github.com/openai/CLIP) — Contrastive image-text embedding model
-- [Nomic Embed Text](https://www.nomic.ai/) — Local 768-dim text embedding model
+This project is licensed under the [MIT License](LICENSE).

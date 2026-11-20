@@ -3,7 +3,7 @@ export interface SourceCitation {
   docName: string;
   pageNumber: number;
   excerpt: string;
-  score: number; // Relevance matching score, e.g. 98%
+  score: number;
 }
 
 export interface ChatMessage {
@@ -21,25 +21,4 @@ export interface DocumentInfo {
   size: number;
   uploadedAt: string;
   pageCount: number;
-}
-
-export interface AudioSegment {
-  start: number;
-  end: number;
-  text: string;
-}
-
-export interface AudioTranscriptionResult {
-  transcript: string;
-  segments: AudioSegment[];
-  simulated?: boolean;
-  error?: string;
-}
-
-export interface ImageSearchResult {
-  id: string;
-  name: string;
-  score: number;
-  url: string;
-  description: string;
 }

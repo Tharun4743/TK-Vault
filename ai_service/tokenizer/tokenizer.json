@@ -1,0 +1,957 @@
+{
+  "target_vocab_size": 2048,
+  "vocab": {
+    "[PAD]": 0,
+    "[UNK]": 1,
+    "[BOS]": 2,
+    "[EOS]": 3,
+    ",": 4,
+    ".": 5,
+    "a": 6,
+    "b": 7,
+    "c": 8,
+    "d": 9,
+    "e": 10,
+    "f": 11,
+    "g": 12,
+    "h": 13,
+    "i": 14,
+    "k": 15,
+    "l": 16,
+    "m": 17,
+    "n": 18,
+    "o": 19,
+    "p": 20,
+    "r": 21,
+    "s": 22,
+    "t": 23,
+    "u": 24,
+    "v": 25,
+    "w": 26,
+    "x": 27,
+    "y": 28,
+    "z": 29,
+    "re": 30,
+    "ti": 31,
+    "te": 32,
+    "an": 33,
+    "in": 34,
+    "ra": 35,
+    "ro": 36,
+    "or": 37,
+    "tio": 38,
+    "tion": 39,
+    "al": 40,
+    "en": 41,
+    "ri": 42,
+    "era": 43,
+    "ys": 44,
+    "ar": 45,
+    "cp": 46,
+    "ed": 47,
+    "lin": 48,
+    "and": 49,
+    "pro": 50,
+    "ce": 51,
+    "ss": 52,
+    "rel": 53,
+    "da": 54,
+    "dat": 55,
+    "data": 56,
+    "ke": 57,
+    "co": 58,
+    "ute": 59,
+    "ze": 60,
+    "to": 61,
+    "ui": 62,
+    "au": 63,
+    "is": 64,
+    "ret": 65,
+    "op": 66,
+    "opera": 67,
+    "operati": 68,
+    "operatin": 69,
+    "operating": 70,
+    "sys": 71,
+    "syste": 72,
+    "system": 73,
+    "systems": 74,
+    "man": 75,
+    "mana": 76,
+    "manag": 77,
+    "manage": 78,
+    "har": 79,
+    "hard": 80,
+    "hardw": 81,
+    "hardwa": 82,
+    "hardware": 83,
+    "me": 84,
+    "mem": 85,
+    "memor": 86,
+    "memory": 87,
+    "memory,": 88,
+    "cpu": 89,
+    "sc": 90,
+    "sch": 91,
+    "sched": 92,
+    "schedu": 93,
+    "schedulin": 94,
+    "scheduling": 95,
+    "scheduling,": 96,
+    "proce": 97,
+    "process": 98,
+    "ex": 99,
+    "exe": 100,
+    "exec": 101,
+    "execu": 102,
+    "execution": 103,
+    "execution.": 104,
+    "rela": 105,
+    "relation": 106,
+    "relational": 107,
+    "datab": 108,
+    "databa": 109,
+    "databas": 110,
+    "database": 111,
+    "databases": 112,
+    "enf": 113,
+    "enfor": 114,
+    "enforce": 115,
+    "ref": 116,
+    "refe": 117,
+    "refere": 118,
+    "referen": 119,
+    "referenti": 120,
+    "referential": 121,
+    "inte": 122,
+    "integ": 123,
+    "integri": 124,
+    "integrit": 125,
+    "integrity": 126,
+    "us": 127,
+    "usin": 128,
+    "using": 129,
+    "pri": 130,
+    "prim": 131,
+    "primar": 132,
+    "primary": 133,
+    "fo": 134,
+    "fore": 135,
+    "forei": 136,
+    "foreig": 137,
+    "foreign": 138,
+    "keys": 139,
+    "keys.": 140,
+    "com": 141,
+    "comp": 142,
+    "compute": 143,
+    "computer": 144,
+    "ne": 145,
+    "net": 146,
+    "netw": 147,
+    "networ": 148,
+    "network": 149,
+    "networks": 150,
+    "uti": 151,
+    "util": 152,
+    "utili": 153,
+    "utilize": 154,
+    "tcp": 155,
+    "ip": 156,
+    "proto": 157,
+    "protoco": 158,
+    "protocol": 159,
+    "sui": 160,
+    "suite": 161,
+    "suites": 162,
+    "route": 163,
+    "pa": 164,
+    "pac": 165,
+    "packe": 166,
+    "packet": 167,
+    "packets": 168,
+    "reli": 169,
+    "relia": 170,
+    "reliab": 171,
+    "reliabl": 172,
+    "reliably": 173,
+    "reliably.": 174,
+    "aura": 175,
+    "of": 176,
+    "off": 177,
+    "offlin": 178,
+    "offline": 179,
+    "retri": 180,
+    "retrie": 181,
+    "retriev": 182,
+    "retrieval": 183,
+    "aug": 184,
+    "augm": 185,
+    "augmen": 186,
+    "augmente": 187,
+    "augmented": 188,
+    "gen": 189,
+    "genera": 190,
+    "generation": 191,
+    "ass": 192,
+    "assis": 193,
+    "assist": 194,
+    "assistan": 195,
+    "assistant": 196,
+    "bui": 197,
+    "buil": 198,
+    "built": 199,
+    "wi": 200,
+    "wit": 201,
+    "with": 202,
+    "zero": 203,
+    "pret": 204,
+    "pretra": 205,
+    "pretrain": 206,
+    "pretrained": 207,
+    "mo": 208,
+    "mod": 209,
+    "mode": 210,
+    "model": 211,
+    "models": 212,
+    "models.": 213
+  },
+  "merges": [
+    [
+      "r",
+      "e"
+    ],
+    [
+      "t",
+      "i"
+    ],
+    [
+      "t",
+      "e"
+    ],
+    [
+      "a",
+      "n"
+    ],
+    [
+      "i",
+      "n"
+    ],
+    [
+      "r",
+      "a"
+    ],
+    [
+      "r",
+      "o"
+    ],
+    [
+      "o",
+      "r"
+    ],
+    [
+      "ti",
+      "o"
+    ],
+    [
+      "tio",
+      "n"
+    ],
+    [
+      "a",
+      "l"
+    ],
+    [
+      "e",
+      "n"
+    ],
+    [
+      "r",
+      "i"
+    ],
+    [
+      "e",
+      "ra"
+    ],
+    [
+      "y",
+      "s"
+    ],
+    [
+      "a",
+      "r"
+    ],
+    [
+      "c",
+      "p"
+    ],
+    [
+      "e",
+      "d"
+    ],
+    [
+      "l",
+      "in"
+    ],
+    [
+      "an",
+      "d"
+    ],
+    [
+      "p",
+      "ro"
+    ],
+    [
+      "c",
+      "e"
+    ],
+    [
+      "s",
+      "s"
+    ],
+    [
+      "re",
+      "l"
+    ],
+    [
+      "d",
+      "a"
+    ],
+    [
+      "da",
+      "t"
+    ],
+    [
+      "dat",
+      "a"
+    ],
+    [
+      "k",
+      "e"
+    ],
+    [
+      "c",
+      "o"
+    ],
+    [
+      "u",
+      "te"
+    ],
+    [
+      "z",
+      "e"
+    ],
+    [
+      "t",
+      "o"
+    ],
+    [
+      "u",
+      "i"
+    ],
+    [
+      "a",
+      "u"
+    ],
+    [
+      "i",
+      "s"
+    ],
+    [
+      "re",
+      "t"
+    ],
+    [
+      "o",
+      "p"
+    ],
+    [
+      "op",
+      "era"
+    ],
+    [
+      "opera",
+      "ti"
+    ],
+    [
+      "operati",
+      "n"
+    ],
+    [
+      "operatin",
+      "g"
+    ],
+    [
+      "s",
+      "ys"
+    ],
+    [
+      "sys",
+      "te"
+    ],
+    [
+      "syste",
+      "m"
+    ],
+    [
+      "system",
+      "s"
+    ],
+    [
+      "m",
+      "an"
+    ],
+    [
+      "man",
+      "a"
+    ],
+    [
+      "mana",
+      "g"
+    ],
+    [
+      "manag",
+      "e"
+    ],
+    [
+      "h",
+      "ar"
+    ],
+    [
+      "har",
+      "d"
+    ],
+    [
+      "hard",
+      "w"
+    ],
+    [
+      "hardw",
+      "a"
+    ],
+    [
+      "hardwa",
+      "re"
+    ],
+    [
+      "m",
+      "e"
+    ],
+    [
+      "me",
+      "m"
+    ],
+    [
+      "mem",
+      "or"
+    ],
+    [
+      "memor",
+      "y"
+    ],
+    [
+      "memory",
+      ","
+    ],
+    [
+      "cp",
+      "u"
+    ],
+    [
+      "s",
+      "c"
+    ],
+    [
+      "sc",
+      "h"
+    ],
+    [
+      "sch",
+      "ed"
+    ],
+    [
+      "sched",
+      "u"
+    ],
+    [
+      "schedu",
+      "lin"
+    ],
+    [
+      "schedulin",
+      "g"
+    ],
+    [
+      "scheduling",
+      ","
+    ],
+    [
+      "pro",
+      "ce"
+    ],
+    [
+      "proce",
+      "ss"
+    ],
+    [
+      "e",
+      "x"
+    ],
+    [
+      "ex",
+      "e"
+    ],
+    [
+      "exe",
+      "c"
+    ],
+    [
+      "exec",
+      "u"
+    ],
+    [
+      "execu",
+      "tion"
+    ],
+    [
+      "execution",
+      "."
+    ],
+    [
+      "rel",
+      "a"
+    ],
+    [
+      "rela",
+      "tion"
+    ],
+    [
+      "relation",
+      "al"
+    ],
+    [
+      "data",
+      "b"
+    ],
+    [
+      "datab",
+      "a"
+    ],
+    [
+      "databa",
+      "s"
+    ],
+    [
+      "databas",
+      "e"
+    ],
+    [
+      "database",
+      "s"
+    ],
+    [
+      "en",
+      "f"
+    ],
+    [
+      "enf",
+      "or"
+    ],
+    [
+      "enfor",
+      "ce"
+    ],
+    [
+      "re",
+      "f"
+    ],
+    [
+      "ref",
+      "e"
+    ],
+    [
+      "refe",
+      "re"
+    ],
+    [
+      "refere",
+      "n"
+    ],
+    [
+      "referen",
+      "ti"
+    ],
+    [
+      "referenti",
+      "al"
+    ],
+    [
+      "in",
+      "te"
+    ],
+    [
+      "inte",
+      "g"
+    ],
+    [
+      "integ",
+      "ri"
+    ],
+    [
+      "integri",
+      "t"
+    ],
+    [
+      "integrit",
+      "y"
+    ],
+    [
+      "u",
+      "s"
+    ],
+    [
+      "us",
+      "in"
+    ],
+    [
+      "usin",
+      "g"
+    ],
+    [
+      "p",
+      "ri"
+    ],
+    [
+      "pri",
+      "m"
+    ],
+    [
+      "prim",
+      "ar"
+    ],
+    [
+      "primar",
+      "y"
+    ],
+    [
+      "f",
+      "o"
+    ],
+    [
+      "fo",
+      "re"
+    ],
+    [
+      "fore",
+      "i"
+    ],
+    [
+      "forei",
+      "g"
+    ],
+    [
+      "foreig",
+      "n"
+    ],
+    [
+      "ke",
+      "ys"
+    ],
+    [
+      "keys",
+      "."
+    ],
+    [
+      "co",
+      "m"
+    ],
+    [
+      "com",
+      "p"
+    ],
+    [
+      "comp",
+      "ute"
+    ],
+    [
+      "compute",
+      "r"
+    ],
+    [
+      "n",
+      "e"
+    ],
+    [
+      "ne",
+      "t"
+    ],
+    [
+      "net",
+      "w"
+    ],
+    [
+      "netw",
+      "or"
+    ],
+    [
+      "networ",
+      "k"
+    ],
+    [
+      "network",
+      "s"
+    ],
+    [
+      "u",
+      "ti"
+    ],
+    [
+      "uti",
+      "l"
+    ],
+    [
+      "util",
+      "i"
+    ],
+    [
+      "utili",
+      "ze"
+    ],
+    [
+      "t",
+      "cp"
+    ],
+    [
+      "i",
+      "p"
+    ],
+    [
+      "pro",
+      "to"
+    ],
+    [
+      "proto",
+      "co"
+    ],
+    [
+      "protoco",
+      "l"
+    ],
+    [
+      "s",
+      "ui"
+    ],
+    [
+      "sui",
+      "te"
+    ],
+    [
+      "suite",
+      "s"
+    ],
+    [
+      "ro",
+      "ute"
+    ],
+    [
+      "p",
+      "a"
+    ],
+    [
+      "pa",
+      "c"
+    ],
+    [
+      "pac",
+      "ke"
+    ],
+    [
+      "packe",
+      "t"
+    ],
+    [
+      "packet",
+      "s"
+    ],
+    [
+      "rel",
+      "i"
+    ],
+    [
+      "reli",
+      "a"
+    ],
+    [
+      "relia",
+      "b"
+    ],
+    [
+      "reliab",
+      "l"
+    ],
+    [
+      "reliabl",
+      "y"
+    ],
+    [
+      "reliably",
+      "."
+    ],
+    [
+      "au",
+      "ra"
+    ],
+    [
+      "o",
+      "f"
+    ],
+    [
+      "of",
+      "f"
+    ],
+    [
+      "off",
+      "lin"
+    ],
+    [
+      "offlin",
+      "e"
+    ],
+    [
+      "ret",
+      "ri"
+    ],
+    [
+      "retri",
+      "e"
+    ],
+    [
+      "retrie",
+      "v"
+    ],
+    [
+      "retriev",
+      "al"
+    ],
+    [
+      "au",
+      "g"
+    ],
+    [
+      "aug",
+      "m"
+    ],
+    [
+      "augm",
+      "en"
+    ],
+    [
+      "augmen",
+      "te"
+    ],
+    [
+      "augmente",
+      "d"
+    ],
+    [
+      "g",
+      "en"
+    ],
+    [
+      "gen",
+      "era"
+    ],
+    [
+      "genera",
+      "tion"
+    ],
+    [
+      "a",
+      "ss"
+    ],
+    [
+      "ass",
+      "is"
+    ],
+    [
+      "assis",
+      "t"
+    ],
+    [
+      "assist",
+      "an"
+    ],
+    [
+      "assistan",
+      "t"
+    ],
+    [
+      "b",
+      "ui"
+    ],
+    [
+      "bui",
+      "l"
+    ],
+    [
+      "buil",
+      "t"
+    ],
+    [
+      "w",
+      "i"
+    ],
+    [
+      "wi",
+      "t"
+    ],
+    [
+      "wit",
+      "h"
+    ],
+    [
+      "ze",
+      "ro"
+    ],
+    [
+      "p",
+      "ret"
+    ],
+    [
+      "pret",
+      "ra"
+    ],
+    [
+      "pretra",
+      "in"
+    ],
+    [
+      "pretrain",
+      "ed"
+    ],
+    [
+      "m",
+      "o"
+    ],
+    [
+      "mo",
+      "d"
+    ],
+    [
+      "mod",
+      "e"
+    ],
+    [
+      "mode",
+      "l"
+    ],
+    [
+      "model",
+      "s"
+    ],
+    [
+      "models",
+      "."
+    ]
+  ]
+}

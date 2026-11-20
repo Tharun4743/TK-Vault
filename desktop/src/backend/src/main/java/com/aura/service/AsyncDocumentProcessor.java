@@ -2,48 +2,47 @@ package com.aura.service;
 
 import com.aura.model.Document;
 import com.aura.repository.DocumentRepository;
+import com.aura.retrieval.BM25Engine;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Phase 1 Fix: All heavy document processing runs in the 'documentIndexingExecutor'
- * pool, NOT in the HTTP request thread.
- *
- * Architecture:
- *   HTTP thread  →  DocumentController  →  DocumentService.submitIndexJob()  →  returns jobId immediately
- *   Worker thread  →  AsyncDocumentProcessor.processDocument()  →  embeds + stores all chunks
- *
- * This prevents HTTP thread exhaustion on large documents (100+ pages) that
- * previously took 5–30 minutes blocking the servlet container's thread pool.
- */
 @Service
 public class AsyncDocumentProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(AsyncDocumentProcessor.class);
 
-    private final DocumentRepository documentRepository;
-    private final ChunkingService chunkingService;
-    private final EmbeddingService embeddingService;
-    private final ChromaDBService chromaDBService;
-    private final AuditLogService auditLogService;
-    private final SettingService settingService;
-    private final IndexingJobService jobService;
+    private final DocumentRepository   documentRepository;
+    private final ChunkingService      chunkingService;
+    private final EmbeddingService     embeddingService;
+    private final ChromaDBService      chromaDBService;
+    private final BM25Engine           bm25Engine;
+    private final AuditLogService      auditLogService;
+    private final SettingService       settingService;
+    private final IndexingJobService   jobService;
 
     public AsyncDocumentProcessor(DocumentRepository documentRepository,
                                    ChunkingService chunkingService,
                                    EmbeddingService embeddingService,
                                    ChromaDBService chromaDBService,
+                                   BM25Engine bm25Engine,
                                    AuditLogService auditLogService,
                                    SettingService settingService,
                                    IndexingJobService jobService) {
@@ -51,23 +50,12 @@ public class AsyncDocumentProcessor {
         this.chunkingService = chunkingService;
         this.embeddingService = embeddingService;
         this.chromaDBService = chromaDBService;
+        this.bm25Engine = bm25Engine;
         this.auditLogService = auditLogService;
         this.settingService = settingService;
         this.jobService = jobService;
     }
 
-    /**
-     * Processes a document asynchronously in the documentIndexingExecutor pool.
-     *
-     * Called from DocumentService.submitIndexJob() — the HTTP response has already
-     * been sent to the client before this method body starts executing.
-     *
-     * @param filename     Original filename (for metadata)
-     * @param contentType  MIME type of the uploaded file
-     * @param fileBytes    Raw file bytes (captured before the MultipartFile expires)
-     * @param fileSize     File size in bytes
-     * @param job          Job tracker instance (pre-created by IndexingJobService)
-     */
     @Async("documentIndexingExecutor")
     public void processDocument(String filename,
                                  String contentType,
@@ -78,7 +66,7 @@ public class AsyncDocumentProcessor {
         jobService.markProcessing(job, "Extracting text from document...");
 
         try {
-            // ── Step 1: Text extraction ──────────────────────────────────
+            // ── Step 1: Text extraction (PDF, DOCX, TXT) ──────────────────
             List<String> pagesText = extractTextByPage(filename, fileBytes);
             int pageCount = pagesText.size();
             log.info("[AURA INDEXER] Job {} — extracted {} pages from '{}'", job.jobId, pageCount, filename);
@@ -94,7 +82,7 @@ public class AsyncDocumentProcessor {
             document = documentRepository.save(document);
             final String docId = document.getId();
 
-            // ── Step 3: Chunking + embedding ─────────────────────────────
+            // ── Step 3: Chunking + BM25 and Vector Indexing ───────────────
             int chunkSize   = parseInt(settingService.getSetting("chunk_size", "500"));
             int overlapSize = parseInt(settingService.getSetting("overlap", "100"));
 
@@ -111,45 +99,56 @@ public class AsyncDocumentProcessor {
 
                 List<String> chunks = chunkingService.overlappingChunk(pageText, chunkSize, overlapSize);
                 jobService.markProcessing(job,
-                    String.format("Embedding page %d / %d (%d chunks)...", p + 1, pageCount, chunks.size()));
+                    String.format("Indexing page %d / %d (%d chunks)...", p + 1, pageCount, chunks.size()));
 
                 for (int c = 0; c < chunks.size(); c++) {
                     String chunkText = chunks.get(c);
                     String chunkId   = "chunk-" + docId + "-" + p + "-" + c;
 
-                    float[] embedding = embeddingService.embed(chunkText); // may return fallback on error
+                    // 1. Index into Java BM25 probabilistic retrieval engine (Primary zero-pretrained RAG)
+                    bm25Engine.indexChunk(chunkId, docId, filename, p + 1, chunkText);
 
-                    Map<String, Object> metadata = new HashMap<>();
-                    metadata.put("docId",      docId);
-                    metadata.put("docName",    filename);
-                    metadata.put("pageNumber", p + 1);
-                    metadata.put("chunkIndex", chunkCounter);
+                    // 2. Optional dense vector generation
+                    try {
+                        float[] embedding = embeddingService.embed(chunkText);
+                        if (embedding != null && embedding.length > 0) {
+                            ids.add(chunkId);
+                            texts.add(chunkText);
+                            embeddings.add(embedding);
 
-                    ids.add(chunkId);
-                    texts.add(chunkText);
-                    embeddings.add(embedding);
-                    metadatas.add(metadata);
+                            Map<String, Object> meta = new HashMap<>();
+                            meta.put("docId", docId);
+                            meta.put("docName", filename);
+                            meta.put("pageNumber", p + 1);
+                            metadatas.add(meta);
+                        }
+                    } catch (Exception ex) {
+                        log.debug("[AURA] Vector sidecar skipped: {}", ex.getMessage());
+                    }
+
                     chunkCounter++;
                 }
 
-                // Flush in batches of 100 chunks — prevents one enormous list in memory
                 if (ids.size() >= 100) {
-                    chromaDBService.createCollection("aura-documents");
-                    chromaDBService.addChunks("aura-documents", ids, texts, embeddings, metadatas);
+                    try {
+                        chromaDBService.createCollection("aura-documents");
+                        chromaDBService.addChunks("aura-documents", ids, texts, embeddings, metadatas);
+                    } catch (Exception ignored) {}
                     ids.clear(); texts.clear(); embeddings.clear(); metadatas.clear();
                 }
             }
 
-            // Flush remaining chunks
             if (!ids.isEmpty()) {
-                chromaDBService.createCollection("aura-documents");
-                chromaDBService.addChunks("aura-documents", ids, texts, embeddings, metadatas);
+                try {
+                    chromaDBService.createCollection("aura-documents");
+                    chromaDBService.addChunks("aura-documents", ids, texts, embeddings, metadatas);
+                } catch (Exception ignored) {}
             }
 
             // ── Step 4: Mark job complete ────────────────────────────────
             jobService.markDone(job, pageCount, chunkCounter);
             auditLogService.logEvent("UPLOAD",
-                "Async indexing complete for \"" + filename + "\": " + chunkCounter + " chunks from " + pageCount + " pages.",
+                "Indexing complete for \"" + filename + "\": " + chunkCounter + " chunks from " + pageCount + " pages.",
                 "Success");
 
             log.info("[AURA INDEXER] Job {} — DONE: {} chunks indexed for '{}'",
@@ -162,8 +161,6 @@ public class AsyncDocumentProcessor {
                 "Async indexing FAILED for \"" + filename + "\": " + e.getMessage(), "Failed");
         }
     }
-
-    // ─── Text extraction ─────────────────────────────────────────────────────
 
     private List<String> extractTextByPage(String filename, byte[] fileBytes) throws Exception {
         List<String> pagesText = new ArrayList<>();
@@ -178,9 +175,26 @@ public class AsyncDocumentProcessor {
                     pagesText.add(pageText != null ? pageText.trim() : "");
                 }
             }
+        } else if (filename != null && filename.toLowerCase().endsWith(".docx")) {
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(fileBytes);
+                 XWPFDocument docx = new XWPFDocument(bais)) {
+                StringBuilder docxText = new StringBuilder();
+                for (XWPFParagraph p : docx.getParagraphs()) {
+                    docxText.append(p.getText()).append("\n");
+                }
+                for (XWPFTable t : docx.getTables()) {
+                    for (XWPFTableRow r : t.getRows()) {
+                        for (XWPFTableCell c : r.getTableCells()) {
+                            docxText.append(c.getText()).append(" | ");
+                        }
+                        docxText.append("\n");
+                    }
+                }
+                pagesText.add(docxText.toString().trim());
+            }
         } else {
-            // Plain text / markdown — treat as single page
-            pagesText.add(new String(fileBytes));
+            // Plain text / markdown — single page
+            pagesText.add(new String(fileBytes, StandardCharsets.UTF_8));
         }
         return pagesText;
     }

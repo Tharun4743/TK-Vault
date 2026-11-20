@@ -1,14 +1,13 @@
 import React, { useState, useRef } from "react";
-import { UploadCloud, FileText, FileAudio, FileImage, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { uploadDocument, indexImage, transcribeAudio } from "../services/api";
+import { UploadCloud, FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { uploadDocument } from "../services/api";
 
 interface FileUploaderProps {
   onUploadSuccess: (filename: string, type: string) => void;
-  onAudioTranscribed?: (text: string) => void;
   onError: (msg: string) => void;
 }
 
-export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onError }: FileUploaderProps) {
+export default function FileUploader({ onUploadSuccess, onError }: FileUploaderProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
@@ -28,13 +27,11 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
   };
 
   const processFile = async (file: File) => {
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    const isDoc = ext === "pdf" || ext === "txt";
-    const isImage = ext === "png" || ext === "jpg" || ext === "jpeg";
-    const isAudio = ext === "wav" || ext === "mp3" || ext === "ogg";
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const isDoc = ext === "pdf" || ext === "docx" || ext === "doc" || ext === "txt" || ext === "md";
 
-    if (!isDoc && !isImage && !isAudio) {
-      onError("Unsupported file format. Please upload PDF, TXT, PNG, JPG, JPEG, WAV, or MP3.");
+    if (!isDoc) {
+      onError("Unsupported file format. Please upload PDF, DOCX, or TXT documents.");
       return;
     }
 
@@ -58,64 +55,35 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
 
     const handleProgress = (pct: number) => {
       if (pct < 100) {
-        setCurrentAction("Uploading file to server...");
+        setCurrentAction("Uploading document to local server...");
         setProgress(Math.round((pct * 90) / 100));
       } else {
         setProgress(90);
-        if (isDoc) {
-          startFakeTicks("Extracting text and chunking...");
-        } else if (isImage) {
-          startFakeTicks("Analyzing visual elements & indexing...");
-        } else if (isAudio) {
-          startFakeTicks("Transcribing vocal segments...");
-        }
+        startFakeTicks("Extracting text and indexing into BM25 engine...");
       }
     };
 
     try {
-      if (isDoc) {
-        const uploadPromise = uploadDocument(file, handleProgress);
-        // Start processing ticks as soon as upload is done
-        uploadPromise.then(() => {}).catch(() => {});
-        // In this case, we just trigger ticks once progress reaches 100
-        const result = await uploadPromise;
-        if (fakeInterval) clearInterval(fakeInterval);
-        setProgress(100);
-        setStatus("success");
-        onUploadSuccess(file.name, "document");
-      } else if (isImage) {
-        const indexPromise = indexImage(file, handleProgress);
-        const result = await indexPromise;
-        if (fakeInterval) clearInterval(fakeInterval);
-        setProgress(100);
-        setStatus("success");
-        onUploadSuccess(file.name, "image");
-      } else if (isAudio) {
-        const transcribePromise = transcribeAudio(file, handleProgress);
-        const result = await transcribePromise;
-        if (fakeInterval) clearInterval(fakeInterval);
-        setProgress(100);
-        setStatus("success");
-        onUploadSuccess(file.name, "audio");
-        if (onAudioTranscribed && result.transcript) {
-          onAudioTranscribed(result.transcript);
-        }
-      }
+      const uploadPromise = uploadDocument(file, handleProgress);
+      await uploadPromise;
+      if (fakeInterval) clearInterval(fakeInterval);
+      setProgress(100);
+      setStatus("success");
+      onUploadSuccess(file.name, "document");
 
-      // Reset state after success animation
       setTimeout(() => {
         setStatus("idle");
         setProgress(0);
         setFileName("");
         setCurrentAction("");
-      }, 3000);
+      }, 2500);
 
     } catch (err: any) {
       if (fakeInterval) clearInterval(fakeInterval);
-      console.error("Indexation failed:", err);
+      console.error("Document indexing failed:", err);
       setStatus("error");
-      onError(err.message || "Failed to process and index file. Confirm local on-premises service setup.");
-      setTimeout(() => setStatus("idle"), 4000);
+      onError(err.message || "Failed to process and index document.");
+      setTimeout(() => setStatus("idle"), 3500);
     }
   };
 
@@ -123,7 +91,6 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
     e.preventDefault();
     e.stopPropagation();
     setIsDragActive(false);
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       processFile(e.dataTransfer.files[0]);
     }
@@ -135,17 +102,13 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
     }
   };
 
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <div className="w-full">
       <input
         ref={fileInputRef}
         type="file"
         className="hidden"
-        accept=".pdf,.txt,.png,.jpg,.jpeg,.wav,.mp3"
+        accept=".pdf,.docx,.doc,.txt,.md"
         onChange={handleFileChange}
       />
 
@@ -154,23 +117,23 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
-        onClick={status === "idle" ? triggerFileSelect : undefined}
-        className={`border border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[140px] text-center select-none ${
+        onClick={status === "idle" ? () => fileInputRef.current?.click() : undefined}
+        className={`border border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[160px] text-center select-none ${
           isDragActive
             ? "border-primary bg-primary/10"
-            : "border-border-default hover:border-border-hover hover:bg-card-bg/50"
+            : "border-border-default hover:border-primary/60 hover:bg-card-bg/50"
         } ${status !== "idle" ? "pointer-events-none" : ""}`}
       >
         {status === "idle" && (
           <>
-            <div className="w-10 h-10 rounded-full bg-app-bg flex items-center justify-center text-text-secondary mb-3">
-              <UploadCloud className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary-light flex items-center justify-center mb-3">
+              <UploadCloud className="w-6 h-6" />
             </div>
-            <p className="font-sans text-sm font-semibold text-text-primary">
-              Drag & drop files here, or click to browse
+            <p className="font-sans text-sm font-bold text-text-primary">
+              Drag & drop documents here, or click to browse
             </p>
             <p className="font-sans text-xs text-text-muted mt-1">
-              Supports PDF, PNG, JPG, WAV, MP3 (Max 15MB)
+              Supports PDF, DOCX, and TXT (Preserves page boundaries)
             </p>
           </>
         )}
@@ -182,42 +145,41 @@ export default function FileUploader({ onUploadSuccess, onAudioTranscribed, onEr
               {currentAction}
             </span>
             <p className="font-sans text-xs text-text-muted truncate w-full max-w-xs mb-3">
-              Indexing: <span className="font-semibold">{fileName}</span>
+              Document: <span className="font-semibold text-text-primary">{fileName}</span>
             </p>
             
-            {/* Elegant 4px Progress Bar requested in Guidelines */}
-            <div className="w-full bg-app-bg h-1 rounded-full overflow-hidden mb-2">
+            <div className="w-full bg-app-bg h-1.5 rounded-full overflow-hidden mb-2 border border-border-default">
               <div 
-                className="bg-status-success h-full transition-all duration-300"
+                className="bg-primary h-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="font-sans text-[10px] text-text-muted font-bold">
-              {progress}% Completed
+            <span className="font-mono text-[10px] text-text-muted font-bold">
+              {progress}%
             </span>
           </div>
         )}
 
         {status === "success" && (
           <div className="flex flex-col items-center">
-            <CheckCircle2 className="w-10 h-10 text-status-success mb-3 animate-bounce" />
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-2 animate-bounce" />
             <p className="font-sans text-sm font-bold text-text-primary">
-              Successfully indexed!
+              Document Successfully Indexed!
             </p>
             <p className="font-sans text-xs text-text-secondary mt-1 select-text">
-              {fileName} is now active in workspace.
+              {fileName} is now active in the BM25 retrieval index.
             </p>
           </div>
         )}
 
         {status === "error" && (
           <div className="flex flex-col items-center">
-            <AlertCircle className="w-10 h-10 text-status-error mb-3 animate-pulse" />
+            <AlertCircle className="w-10 h-10 text-red-500 mb-2 animate-pulse" />
             <p className="font-sans text-sm font-bold text-text-primary">
-              Indexation failed
+              Indexing Failed
             </p>
-            <p className="font-sans text-xs text-status-error mt-1">
-              Please check configuration and try again.
+            <p className="font-sans text-xs text-red-400 mt-1">
+              Please check document format and try again.
             </p>
           </div>
         )}

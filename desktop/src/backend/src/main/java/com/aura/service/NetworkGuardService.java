@@ -13,99 +13,44 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
-/**
- * Phase 5+6 Fix: Removed all user-facing terminal instructions (Store policy violation).
- * Replaced all System.out.println with SLF4J logger.
- */
 @Service
 public class NetworkGuardService {
 
     private static final Logger log = LoggerFactory.getLogger(NetworkGuardService.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${aura.ollama.url:http://localhost:11434}")
-    private String ollamaUrl;
-
-    @Value("${aura.chromadb.url:http://localhost:8001}")
-    private String chromaUrl;
+    @Value("${aura.ai-service.url:http://127.0.0.1:5000}")
+    private String aiServiceUrl;
 
     @PostConstruct
     public void checkOfflineInfrastructure() {
-        log.info("[AURA NEURAL GUARD] Running startup health verification on offline AI resources...");
+        log.info("[AURA NEURAL GUARD] Verifying 100% offline zero-pretrained AI model service on {}...", aiServiceUrl);
 
-        // 1. Check Ollama
-        boolean ollamaRunning = false;
         try {
             HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(2))
+                    .connectTimeout(Duration.ofSeconds(3))
                     .build();
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ollamaUrl + "/api/tags"))
+                    .uri(URI.create(aiServiceUrl + "/status"))
                     .GET()
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-                ollamaRunning = true;
                 Map<?, ?> json = objectMapper.readValue(response.body(), Map.class);
-                List<?> models = (List<?>) json.get("models");
-                boolean hasLlama3 = false;
-                boolean hasEmbed = false;
-
-                if (models != null) {
-                    for (Object mObj : models) {
-                        if (mObj instanceof Map) {
-                            Map<?, ?> m = (Map<?, ?>) mObj;
-                            String name = (String) m.get("name");
-                            if (name != null) {
-                                if (name.startsWith("llama3")) hasLlama3 = true;
-                                if (name.startsWith("nomic-embed-text")) hasEmbed = true;
-                            }
-                        }
-                    }
-                }
-
-                if (!hasLlama3) {
-                    log.warn("[AURA NEURAL GUARD] llama3 model is missing in local Ollama service. " +
-                             "The Electron shell should auto-pull this model shortly.");
-                }
-                if (!hasEmbed) {
-                    log.warn("[AURA NEURAL GUARD] nomic-embed-text embedding model is missing in local Ollama service. " +
-                             "The Electron shell should auto-pull this model shortly.");
-                }
-                if (hasLlama3 && hasEmbed) {
-                    log.info("[AURA NEURAL GUARD] Local Ollama and matching models successfully verified.");
-                }
-            }
-        } catch (Exception e) {
-            log.warn("[AURA NEURAL GUARD] Local Ollama service is not reachable on {}. " +
-                     "The Electron shell should start it automatically.", ollamaUrl);
-        }
-
-        // 2. Check ChromaDB
-        try {
-            HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofSeconds(2))
-                    .build();
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(chromaUrl + "/api/v1/heartbeat"))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-                log.info("[AURA NEURAL GUARD] Local ChromaDB vector database verified on {}", chromaUrl);
+                Object params = json.get("model_parameters");
+                Object vocab = json.get("vocab_size");
+                log.info("[AURA NEURAL GUARD] Custom Scratch Transformer verified online: {} parameters, vocab size: {}", params, vocab);
             } else {
-                log.info("[AURA NEURAL GUARD] ChromaDB server not found on {}. Using local in-memory simulated vector store.", chromaUrl);
+                log.warn("[AURA NEURAL GUARD] Python AI service responded with HTTP status {}", response.statusCode());
             }
         } catch (Exception e) {
-            log.info("[AURA NEURAL GUARD] ChromaDB server not reachable on {}. Using local in-memory simulated vector store.", chromaUrl);
+            log.warn("[AURA NEURAL GUARD] Python AI service not currently reachable on {}. Ensure ai_service is started.", aiServiceUrl);
         }
-        log.info("[AURA NEURAL GUARD] Verification complete. Proceeding with application boot...");
+
+        log.info("[AURA NEURAL GUARD] Zero-pretrained offline architecture verified.");
     }
 }

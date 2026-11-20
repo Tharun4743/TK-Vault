@@ -2,6 +2,7 @@ package com.aura.service;
 
 import com.aura.model.Document;
 import com.aura.repository.DocumentRepository;
+import com.aura.retrieval.BM25Engine;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -35,17 +36,20 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final ChromaDBService chromaDBService;
+    private final BM25Engine bm25Engine;
     private final AuditLogService auditLogService;
     private final AsyncDocumentProcessor asyncProcessor;
     private final IndexingJobService jobService;
 
     public DocumentService(DocumentRepository documentRepository,
                            ChromaDBService chromaDBService,
+                           BM25Engine bm25Engine,
                            AuditLogService auditLogService,
                            AsyncDocumentProcessor asyncProcessor,
                            IndexingJobService jobService) {
         this.documentRepository = documentRepository;
         this.chromaDBService = chromaDBService;
+        this.bm25Engine = bm25Engine;
         this.auditLogService = auditLogService;
         this.asyncProcessor = asyncProcessor;
         this.jobService = jobService;
@@ -58,8 +62,24 @@ public class DocumentService {
     public void deleteDocument(String id) {
         Document doc = documentRepository.findById(id).orElse(null);
         String name = doc != null ? doc.getName() : "Source";
+        
+        // 1. Evict from BM25 Inverted Index immediately
+        try {
+            bm25Engine.removeDocument(id);
+        } catch (Exception e) {
+            log.warn("[AURA] BM25 removal warning for {}: {}", id, e.getMessage());
+        }
+
+        // 2. Remove from ChromaDB if active
+        try {
+            chromaDBService.deleteDocument(id);
+        } catch (Exception e) {
+            log.warn("[AURA] Vector store removal warning for {}: {}", id, e.getMessage());
+        }
+
+        // 3. Delete from SQLite
         documentRepository.deleteById(id);
-        chromaDBService.deleteDocument(id);
+
         auditLogService.logEvent("DELETE",
             "Deindexed and removed source file \"" + name + "\" from system repositories.",
             "Success");

@@ -4,14 +4,24 @@ __pycache__/
 *.pyo
 .venv/
 desktop/src/.venv/
+ai_service/__pycache__/
 
 # Java / Maven
 backend/target/
 desktop/src/backend/target/
 *.class
 *.jar
-!data/aura.db
-!desktop/src/data/aura.db
+target/
+
+# Databases & User Data
+*.db
+*.sqlite
+*.sqlite3
+data/
+desktop/data/
+desktop/src/data/
+desktop/src/backend/uploads/
+uploads/
 
 # Node / Frontend
 node_modules/
@@ -25,20 +35,33 @@ desktop/jre/
 desktop/backend/
 desktop/frontend/
 desktop/.venv/
-desktop/data/
 
-# Models (downloaded separately — never commit)
+# Secrets & Environment variables
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+id_rsa
+*.pfx
+
+# Models & Large Binaries
 backend/models/
 desktop/src/backend/models/
 backend/chroma_cache.json
 desktop/src/backend/chroma_cache.json
-desktop/src/backend/uploads/
+ml/checkpoints/
+*.onnx
+*.gguf
+*.pt
+*.bin
 
-# OS
+# OS & Logs
 .DS_Store
 Thumbs.db
 *.log
 *.tmp
+.vscode/
 
 # Developer Tools
 tools/
@@ -49,7 +72,5 @@ desktop/src/tools/
 /backend
 /models
 /database/
-/uploads/
 /logs/
 /web/pids.json
-

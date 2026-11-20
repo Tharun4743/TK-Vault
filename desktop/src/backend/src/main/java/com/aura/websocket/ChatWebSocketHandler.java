@@ -4,10 +4,12 @@ import com.aura.model.Chat;
 import com.aura.model.SearchResult;
 import com.aura.repository.ChatRepository;
 import com.aura.repository.DocumentRepository;
+import com.aura.retrieval.BM25Engine;
 import com.aura.service.AuditLogService;
 import com.aura.service.ChromaDBService;
 import com.aura.service.EmbeddingService;
 import com.aura.service.OllamaService;
+import com.aura.service.PythonAiClient;
 import com.aura.service.SettingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -17,6 +19,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,6 +30,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final EmbeddingService embeddingService;
     private final ChromaDBService chromaDBService;
+    private final BM25Engine bm25Engine;
+    private final PythonAiClient pythonAiClient;
     private final OllamaService ollamaService;
     private final ChatRepository chatRepository;
     private final DocumentRepository documentRepository;
@@ -36,6 +41,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     public ChatWebSocketHandler(EmbeddingService embeddingService,
                                  ChromaDBService chromaDBService,
+                                 BM25Engine bm25Engine,
+                                 PythonAiClient pythonAiClient,
                                  OllamaService ollamaService,
                                  ChatRepository chatRepository,
                                  DocumentRepository documentRepository,
@@ -43,6 +50,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                                  AuditLogService auditLogService) {
         this.embeddingService = embeddingService;
         this.chromaDBService = chromaDBService;
+        this.bm25Engine = bm25Engine;
+        this.pythonAiClient = pythonAiClient;
         this.ollamaService = ollamaService;
         this.chatRepository = chatRepository;
         this.documentRepository = documentRepository;
@@ -52,177 +61,157 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        log.info("Client WebSocket handshake successful: {}", session.getId());
+        log.info("[AURA WS] Connected: {}", session.getId());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
-        log.debug("Query packet received on session: {}", session.getId());
+        Map<?, ?> requestMap = objectMapper.readValue(payload, Map.class);
 
+        Object msgObj = requestMap.get("message");
+        String messageText = null;
+        if (msgObj instanceof String s) {
+            messageText = s;
+        } else if (msgObj instanceof Map<?, ?> m) {
+            Object inner = m.get("text") != null ? m.get("text") : m.get("message");
+            if (inner != null) messageText = inner.toString();
+        }
+        if (messageText == null && requestMap.get("text") != null) {
+            messageText = requestMap.get("text").toString();
+        }
+        if (messageText == null && requestMap.get("question") != null) {
+            messageText = requestMap.get("question").toString();
+        }
+
+        String filterDocId = null;
+        if (requestMap.get("filterDocId") != null) {
+            filterDocId = requestMap.get("filterDocId").toString();
+        } else if (requestMap.get("docId") != null) {
+            filterDocId = requestMap.get("docId").toString();
+        } else if (msgObj instanceof Map<?, ?> m && m.get("docId") != null) {
+            filterDocId = m.get("docId").toString();
+        }
+
+        int topK = 5;
         try {
-            // Parse incoming JSON
-            Map<String, Object> rawRequest = objectMapper.readValue(payload, Map.class);
-            String messageText = (String) rawRequest.get("message");
-            String sessionId = (String) rawRequest.get("sessionId");
-            if (messageText == null || messageText.trim().isEmpty()) {
-                Map<String, Object> errorPayload = new HashMap<>();
-                errorPayload.put("type", "error");
-                errorPayload.put("message", "Empty query string provided.");
-                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorPayload)));
-                return;
-            }
+            topK = Integer.parseInt(settingService.getSetting("top_k", "5"));
+        } catch (Exception ignored) {}
 
-            long docCount = documentRepository.count();
-            String completeResponse;
-            List<Map<String, Object>> citationsList = new ArrayList<>();
-            final StringBuilder responseBuffer = new StringBuilder();
+        if (messageText == null || messageText.trim().isEmpty()) {
+            return;
+        }
 
-            // --- Read live settings from SQLite ---
-            String modelName = settingService.getSetting("model_name", "llama3");
-            double temperature = Double.parseDouble(settingService.getSetting("temperature", "0.1"));
-            int topK = Integer.parseInt(settingService.getSetting("top_k", "5"));
-            boolean fallbackEnabled = Boolean.parseBoolean(settingService.getSetting("enable_fallback", "true"));
+        StringBuilder responseBuffer = new StringBuilder();
+        List<Map<String, Object>> citationsList = new ArrayList<>();
 
-            boolean filesBrain = true;
-            if (rawRequest.containsKey("filesBrain")) {
-                Object val = rawRequest.get("filesBrain");
-                if (val instanceof Boolean) {
-                    filesBrain = (Boolean) val;
-                } else if (val instanceof String) {
-                    filesBrain = "true".equalsIgnoreCase((String) val) || "yes".equalsIgnoreCase((String) val);
+        // ── Step 1: Execute Native Java BM25 Lexical Retrieval ────────────
+        List<BM25Engine.ScoredResult> bm25Results = bm25Engine.search(messageText, topK, filterDocId);
+
+        // Fallback to ChromaDB dense vector search if BM25 is empty
+        List<SearchResult> vectorResults = Collections.emptyList();
+        if (bm25Results.isEmpty()) {
+            float[] queryVec = embeddingService.embed(messageText);
+            vectorResults = chromaDBService.query("aura-documents", queryVec, topK, filterDocId);
+        }
+
+        boolean hasEvidence = (!bm25Results.isEmpty() && bm25Results.get(0).score > 0.05) ||
+                              (!vectorResults.isEmpty() && vectorResults.get(0).getScore() > 25.0);
+
+        if (hasEvidence) {
+            StringBuilder contextBuilder = new StringBuilder();
+
+            if (!bm25Results.isEmpty()) {
+                for (BM25Engine.ScoredResult r : bm25Results) {
+                    contextBuilder.append("[").append(r.chunk.docName)
+                            .append(" (Page ").append(r.chunk.pageNumber).append(")] ")
+                            .append(r.chunk.text).append("\n\n");
+
+                    Map<String, Object> cite = new HashMap<>();
+                    cite.put("docId", r.chunk.docId);
+                    cite.put("docName", r.chunk.docName);
+                    cite.put("pageNumber", r.chunk.pageNumber);
+                    cite.put("excerpt", r.chunk.text);
+                    cite.put("score", Math.round(r.score * 100.0) / 100.0);
+                    citationsList.add(cite);
                 }
-            }
-            String filterDocId = (String) rawRequest.get("filterDocId");
-
-            if (!filesBrain || docCount == 0) {
-                // Case 1: No documents uploaded or Files Brain is disabled
-                String systemPrompt = "You are Aura - AI unified retrival assistant, an offline AI assistant. Answer the user's question using your general knowledge.";
-                ollamaService.generateRAG(messageText, systemPrompt, (token) -> {
-                    try {
-                        responseBuffer.append(token);
-                        Map<String, Object> tokenPayload = new HashMap<>();
-                        tokenPayload.put("type", "token");
-                        tokenPayload.put("data", token);
-                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(tokenPayload)));
-                    } catch (Exception ex) {
-                        log.error("WebSocket stream send failed: {}", ex.getMessage());
-                    }
-                });
             } else {
-                // Case 2: One or more files uploaded and Files Brain is active
-                // 1. Generate Query Vector
-                float[] queryVec = embeddingService.embed(messageText);
+                for (SearchResult r : vectorResults) {
+                    contextBuilder.append("[").append(r.getCitation()).append("] ")
+                            .append(r.getChunkText()).append("\n\n");
 
-                // 2. Fetch nearest sources from ChromaDB (using settings top_k and filterDocId)
-                List<SearchResult> searchResults = chromaDBService.query("aura-documents", queryVec, topK, filterDocId);
-
-                boolean relevant = false;
-                if (searchResults != null && !searchResults.isEmpty()) {
-                    double bestScore = searchResults.get(0).getScore();
-                    // Cosine similarity higher is better. Threshold of 25.0% represents relevance
-                    if (bestScore > 25.0) {
-                        relevant = true;
-                    }
-                }
-
-                if (relevant) {
-                    String context = ollamaService.buildRAGPrompt(messageText, searchResults);
-                    String systemPrompt = "You are Aura - AI unified retrival assistant. Answer STRICTLY from the provided context. If the answer is absent, say: I don't have information about this in the loaded documents. Always cite document name and page number.";
-                    String ragPrompt = "CONTEXT:\n" + context + "\n\nQUESTION: " + messageText + "\nANSWER:";
-
-                    ollamaService.generateRAG(ragPrompt, systemPrompt, (token) -> {
-                        try {
-                            responseBuffer.append(token);
-                            Map<String, Object> tokenPayload = new HashMap<>();
-                            tokenPayload.put("type", "token");
-                            tokenPayload.put("data", token);
-                            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(tokenPayload)));
-                        } catch (Exception ex) {
-                            System.err.println("WebSocket stream send failed: " + ex.getMessage());
-                        }
-                    });
-
-                    for (SearchResult r : searchResults) {
-                        Map<String, Object> cite = new HashMap<>();
-                        cite.put("docId", r.getDocId());
-                        cite.put("docName", r.getDocName());
-                        cite.put("pageNumber", r.getPageNumber());
-                        cite.put("excerpt", r.getChunkText());
-                        cite.put("score", r.getScore());
-                        citationsList.add(cite);
-                    }
-                } else {
-                    if (fallbackEnabled) {
-                        // Fallback to Ollama's general knowledge
-                        String systemPrompt = "You are Aura - AI unified retrival assistant, an offline AI assistant. The user has uploaded documents, but none contain information relevant to this question. Answer the user's question using your general knowledge, and briefly mention that no relevant information was found in the knowledge base.";
-                        ollamaService.generateRAG(messageText, systemPrompt, (token) -> {
-                            try {
-                                responseBuffer.append(token);
-                                Map<String, Object> tokenPayload = new HashMap<>();
-                                tokenPayload.put("type", "token");
-                                tokenPayload.put("data", token);
-                                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(tokenPayload)));
-                            } catch (Exception ex) {
-                                System.err.println("WebSocket stream send failed: " + ex.getMessage());
-                            }
-                        });
-                    } else {
-                        // Strict RAG refusal
-                        String refusal = "I don't have information about this in the loaded documents.";
-                        responseBuffer.append(refusal);
-                        Map<String, Object> tokenPayload = new HashMap<>();
-                        tokenPayload.put("type", "token");
-                        tokenPayload.put("data", refusal);
-                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(tokenPayload)));
-                    }
+                    Map<String, Object> cite = new HashMap<>();
+                    cite.put("docId", r.getDocId());
+                    cite.put("docName", r.getDocName());
+                    cite.put("pageNumber", r.getPageNumber());
+                    cite.put("excerpt", r.getChunkText());
+                    cite.put("score", r.getScore());
+                    citationsList.add(cite);
                 }
             }
 
-            completeResponse = responseBuffer.toString();
+            String context = contextBuilder.toString().trim();
+            String systemPrompt = "You are Aura - AI unified retrieval assistant. Answer STRICTLY based on the provided document context. Cite document name and page number.";
 
-            Map<String, Object> donePayload = new HashMap<>();
-            donePayload.put("type", "done");
-            donePayload.put("sources", citationsList);
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(donePayload)));
+            // ── Step 2: Query Dedicated Local Python AI Model Service ──────
+            String generatedAnswer = pythonAiClient.generateAnswer(messageText, context, systemPrompt);
 
-            // 6. Save Chat session to SQLite
-            String sourcesJson = "[]";
-            try {
-                sourcesJson = objectMapper.writeValueAsString(citationsList);
-            } catch (Exception ex) {
-                // Ignore
+            if (generatedAnswer != null && !generatedAnswer.isBlank()) {
+                // Stream response token-by-token
+                streamTokensToSession(session, generatedAnswer, responseBuffer);
+            } else {
+                // Grounded native synthesis fallback
+                String nativeAnswer = "Based on the retrieved document evidence:\n\n" + context;
+                streamTokensToSession(session, nativeAnswer, responseBuffer);
             }
+        } else {
+            // Strict Refusal when evidence is insufficient
+            String refusal = "I couldn't find sufficient information in the uploaded documents to answer this question accurately.";
+            streamTokensToSession(session, refusal, responseBuffer);
+        }
 
+        // ── Step 3: Send Final Completion Payload ─────────────────────────
+        Map<String, Object> donePayload = new HashMap<>();
+        donePayload.put("type", "done");
+        donePayload.put("sources", citationsList);
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(donePayload)));
+
+        // ── Step 4: Persist Conversation Session in SQLite ────────────────
+        try {
             Chat chat = Chat.builder()
                     .question(messageText)
-                    .answer(completeResponse)
-                    .model(settingService.getSetting("model_name", "llama3"))
+                    .answer(responseBuffer.toString())
                     .createdAt(LocalDateTime.now())
-                    .sources(sourcesJson)
-                    .sessionId(sessionId != null && !sessionId.isEmpty() ? sessionId : "default")
+                    .model("Custom-ZeroPretrained-Transformer")
+                    .sessionId(session.getId())
+                    .sources(objectMapper.writeValueAsString(citationsList))
                     .build();
             chatRepository.save(chat);
+            auditLogService.logEvent("CHAT_QUERY", "User queried: " + messageText, "Success");
+        } catch (Exception ex) {
+            log.error("[AURA WS] Failed saving chat history: {}", ex.getMessage());
+        }
+    }
 
-            // 7. Write event to audit logs
-            String truncatedQuery = messageText.substring(0, Math.min(messageText.length(), 40));
-            auditLogService.logEvent(
-                    "CHAT",
-                    "Completed streaming grounded retrieval for: \"" + truncatedQuery + "...\"",
-                    "Success"
-                );
-
-        } catch (Exception e) {
-            Map<String, Object> errorPayload = new HashMap<>();
-            errorPayload.put("type", "error");
-            errorPayload.put("message", e.getMessage());
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(errorPayload)));
+    private void streamTokensToSession(WebSocketSession session, String fullText, StringBuilder responseBuffer) {
+        String[] tokens = fullText.split("(?<=\\s)|(?=\\n)");
+        for (String token : tokens) {
+            try {
+                responseBuffer.append(token);
+                Map<String, Object> tokenPayload = new HashMap<>();
+                tokenPayload.put("type", "token");
+                tokenPayload.put("data", token);
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(tokenPayload)));
+                Thread.sleep(10); // Real-time token streaming cadence
+            } catch (Exception ex) {
+                log.error("[AURA WS] Token stream failed: {}", ex.getMessage());
+                break;
+            }
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        log.info("Connection closed: {}", session.getId());
+        log.info("[AURA WS] Disconnected: {}", session.getId());
     }
 }

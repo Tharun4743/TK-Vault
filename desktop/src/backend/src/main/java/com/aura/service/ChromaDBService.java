@@ -244,7 +244,11 @@ public class ChromaDBService {
     @SuppressWarnings("unchecked")
     public void deleteDocument(String docId) {
         // Delete from Single Source of Truth
-        vectorChunkRepository.deleteByDocId(docId);
+        try {
+            vectorChunkRepository.deleteByDocId(docId);
+        } catch (Exception e) {
+            log.warn("[AURA VECTOR-DB] Vector delete bypassed: {}", e.getMessage());
+        }
 
         // Remove from In-Memory Index
         lock.writeLock().lock();

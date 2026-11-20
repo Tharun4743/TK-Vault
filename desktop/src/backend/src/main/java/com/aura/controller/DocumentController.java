@@ -39,6 +39,8 @@ public class DocumentController {
         "text/plain",
         "text/markdown",
         "text/x-markdown",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
         "application/octet-stream" // some browsers send this for .txt; allow as fallback
     );
 
@@ -69,11 +71,11 @@ public class DocumentController {
         String filename    = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
 
         boolean validMime = contentType != null && ALLOWED_CONTENT_TYPES.contains(contentType);
-        boolean validExt  = filename.endsWith(".pdf") || filename.endsWith(".txt") || filename.endsWith(".md");
+        boolean validExt  = filename.endsWith(".pdf") || filename.endsWith(".txt") || filename.endsWith(".md") || filename.endsWith(".docx") || filename.endsWith(".doc");
 
         if (!validMime && !validExt) {
             return ResponseEntity.badRequest().body(
-                Map.of("error", "Unsupported file type. Please upload a PDF or text file."));
+                Map.of("error", "Unsupported file type. Please upload a PDF, DOCX, or text file."));
         }
 
         try {
