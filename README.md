@@ -1,23 +1,45 @@
-# AURA — Air-Gapped Local Multimodal RAG Engine & Offline AI Assistant
+# TK-Vault — Sovereign Document Intelligence & Air-Gapped RAG Engine
 
-[![Java](https://img.shields.io/badge/Java-17%20%7C%2021-orange.svg?style=flat-square&logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Backend-Spring%20Boot%203.3.0-brightgreen.svg?style=flat-square&logo=springboot)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB.svg?style=flat-square&logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/UI-Tailwind%20CSS%20v4-06B6D4.svg?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
-[![PyTorch](https://img.shields.io/badge/Neural%20Engine-PyTorch%20Scratch-EE4C2C.svg?style=flat-square&logo=pytorch)](https://pytorch.org/)
-[![SQLite](https://img.shields.io/badge/Database-SQLite%20JPA-003B57.svg?style=flat-square&logo=sqlite)](https://www.sqlite.org/)
-[![Air-Gapped](https://img.shields.io/badge/Network-100%25%20Offline%20Air--Gapped-blueviolet.svg?style=flat-square)](#)
-[![Zero Pretrained](https://img.shields.io/badge/Weights-Zero%20Pretrained%20Models-success.svg?style=flat-square)](#)
-[![License](https://img.shields.io/badge/License-Proprietary_%2F_Permission_Required-red?style=flat-square)](LICENSE.md)
+<div align="center">
 
-**AURA** (Autonomous Universal Retrieval Architecture) is a **100% air-gapped, zero-cloud-egress Retrieval-Augmented Generation (RAG) system** engineered with **zero pretrained model dependencies** (strictly no Ollama, no HuggingFace weight downloads, no sentence-transformers, and zero external cloud APIs). Built for institutional environments where confidential data must never cross network boundaries, AURA couples an in-memory **Java Okapi BM25 Probabilistic Lexical Engine** with a local **PyTorch Scratch Transformer (`ai_service`)** to deliver deterministic, grounded document intelligence, sub-second search, and exact page citations directly on commodity hardware without internet connectivity.
+<img src="desktop/assets/logo.jpg" width="115" style="border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 12px;" alt="TK-Vault Logo" />
+
+![Java](https://img.shields.io/badge/Java-17%20%7C%2021-orange.svg?style=flat-square&logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Backend-Spring%20Boot%203.3.0-brightgreen.svg?style=flat-square&logo=springboot)
+![React](https://img.shields.io/badge/Frontend-React%2019-61DAFB.svg?style=flat-square&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/UI-Tailwind%20CSS%20v4-06B6D4.svg?style=flat-square&logo=tailwindcss)
+![PyTorch](https://img.shields.io/badge/Neural%20Engine-PyTorch%20Scratch-EE4C2C.svg?style=flat-square&logo=pytorch)
+![SQLite](https://img.shields.io/badge/Database-SQLite%20JPA-003B57.svg?style=flat-square&logo=sqlite)
+![Air-Gapped](https://img.shields.io/badge/Network-100%25%20Offline%20Air--Gapped-blueviolet.svg?style=flat-square)
+![Zero Pretrained](https://img.shields.io/badge/Weights-Zero%20Pretrained%20Models-success.svg?style=flat-square)
+![License](https://img.shields.io/badge/License-Proprietary_%2F_Permission_Required-red?style=flat-square)
+
+**TK-Vault** is a **100% air-gapped, zero-cloud-egress Retrieval-Augmented Generation (RAG) platform** engineered with **zero pretrained model dependencies** (strictly no Ollama, no HuggingFace weight downloads, no sentence-transformers, and zero external cloud APIs). Built for institutional environments where confidential data must never cross network boundaries, TK-Vault couples an in-memory **Java Okapi BM25 Probabilistic Lexical Engine** with a local **PyTorch Scratch Transformer (`ai_service`)** to deliver deterministic, grounded document intelligence, sub-second search, and exact page citations directly on commodity hardware without internet connectivity.
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Problem Statement & Context](#problem-statement--context)
+- [Existing Solutions & Critical Gaps](#existing-solutions--critical-gaps)
+- [Proposed Solution & Architectural Innovation](#proposed-solution--architectural-innovation)
+- [System Architecture](#system-architecture)
+- [Professional Project Structure](#-professional-project-structure)
+- [Component Deep-Dive & Execution Flow](#component-deep-dive--execution-flow)
+- [Quantifiable Impact & Measurable Benefits](#quantifiable-impact--measurable-benefits)
+- [Feasibility, Operational Viability & Scalability](#feasibility-operational-viability--scalability)
+- [Quickstart & Local Setup](#-quickstart--local-setup)
+- [Author & Engineering Credentials](#-author--engineering-credentials)
+- [License](#-license)
 
 ---
 
 ## Problem Statement & Context
 
-Modern generative AI systems and cloud RAG platforms (OpenAI ChatGPT, Anthropic Claude, Microsoft Copilot) rely entirely on remote Software-as-a-Service (SaaS) infrastructures. In critical institutional, defense, legal, banking, and academic environments, this cloud dependency introduces critical security vulnerabilities and operational failure modes:
+Modern generative AI systems and cloud RAG platforms (OpenAI ChatGPT, Anthropic Claude, Microsoft Copilot) rely entirely on remote Software-as-a-Service (SaaS) infrastructures. In critical institutional, defense, legal, banking, and academic environments, this cloud dependency introduces severe security vulnerabilities and operational failure modes:
 
 1. **Catastrophic Data Leakage & Sovereignty Breaches**: Sensitive proprietary assets—including enterprise balance sheets, internal policy schedules, legal contracts, institutional task records, and personal identification data—cannot legally or ethically be transmitted over external networks or ingested by third-party training pipelines.
 2. **Network Partitioning & Operational Brittleness**: High-security research vaults, air-gapped laboratory networks, and rural industrial installations operate in zero-connectivity or WAN-throttled environments. Cloud-dependent tools become completely inoperable when the network drops.
@@ -28,7 +50,7 @@ Modern generative AI systems and cloud RAG platforms (OpenAI ChatGPT, Anthropic 
 
 ## Existing Solutions & Critical Gaps
 
-| Evaluation Metric | Cloud Enterprise RAG (LangChain / OpenAI) | Web-Based Local Wrappers (Open-WebUI / Ollama) | Traditional Desktop Scripts (CLI Shell Wrappers) | **AURA Sovereign Architecture** |
+| Evaluation Metric | Cloud Enterprise RAG (LangChain / OpenAI) | Web-Based Local Wrappers (Open-WebUI / Ollama) | Traditional Desktop Scripts (CLI Shell Wrappers) | **TK-Vault Sovereign Architecture** |
 | :--- | :--- | :--- | :--- | :--- |
 | **Network Isolation** | ❌ Transmits all embeddings and prompts to remote cloud servers | ⚠️ Requires external weight downloads (multi-gigabyte Ollama models) | ⚠️ Minimal security boundary; no isolation of local sub-processes | ✅ **Strict Hardware-Enforced Air-Gap (0 outbound socket bindings)** |
 | **Model Dependencies** | ❌ Proprietary cloud LLM APIs ($0.01–$0.06 / 1k tokens) | ⚠️ Multi-GB GGUF / HuggingFace weights required | ⚠️ Unreliable local dependencies | ✅ **Zero Pretrained Weights (Pure Java BM25 + PyTorch Scratch Transformer)** |
@@ -41,10 +63,10 @@ Modern generative AI systems and cloud RAG platforms (OpenAI ChatGPT, Anthropic 
 
 ## Proposed Solution & Architectural Innovation
 
-AURA introduces a **Three-Tier Air-Gapped RAG Architecture** that eliminates both cloud egress and third-party pretrained weights:
+TK-Vault introduces a **Three-Tier Air-Gapped RAG Architecture** that eliminates both cloud egress and third-party pretrained weights:
 
 - **Java-Native Okapi BM25 Probabilistic Lexical Engine**:
-  - Direct in-memory inverted index built on runtime document uploads.
+  - Direct in-memory inverted index built dynamically on runtime document uploads.
   - Computes non-linear term frequency saturation ($k_1 = 1.5$) to prevent boilerplate footers from artificially dominating search results.
   - Applies strict document length normalization ($b = 0.75$) to balance short, entity-dense policy certificates against multi-page manuals.
   - Delivers sub-50ms deterministic chunk ranking with **zero hallucinations on exact numbers, dates, and names**.
@@ -60,7 +82,7 @@ AURA introduces a **Three-Tier Air-Gapped RAG Architecture** that eliminates bot
 
 ---
 
-## Technical Approach & System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -99,7 +121,62 @@ flowchart TD
     WS_Handler -->|"POST /generate"| FastAPI
 ```
 
-### Component Deep-Dive & Execution Flow
+---
+
+## 📂 Professional Project Structure
+
+```text
+TK-Vault/
+├── frontend/                        # React 19 + TypeScript + Tailwind CSS v4 SPA
+│   ├── src/
+│   │   ├── components/              # ChatWindow, LibraryView, Sidebar, etc.
+│   │   │   ├── layout/              # ThemeToggle, PageLayout
+│   │   │   └── ui/                  # Badge, Button, Card, Table, Toast
+│   │   ├── hooks/                   # useWebSocket streaming hook
+│   │   ├── services/                # Axios REST API client
+│   │   ├── App.tsx                  # Root Task-Manager UI
+│   │   └── index.css                # Tailwind v4 theme variables
+│   ├── public/                      # Static assets & brand logo
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend/                         # Spring Boot 3.3.0 Engine (Java 17/21)
+│   ├── src/main/java/com/aura/
+│   │   ├── config/                  # CORS, WebSocket, & DB Configuration
+│   │   ├── controller/              # REST Endpoints (Chat, Documents, Stats)
+│   │   ├── model/                   # JPA Entities (Document, Chunk, Chat)
+│   │   ├── repository/              # Spring Data JPA Repositories
+│   │   ├── retrieval/               # Native Java Okapi BM25 Engine
+│   │   ├── service/                 # Document, Embedding, & Network Guard
+│   │   └── websocket/               # Real-time WebSocket streaming handler
+│   ├── src/main/resources/          # application.yml
+│   └── pom.xml                      # Maven project configuration
+│
+├── ai_service/                      # Local PyTorch Scratch Neural Engine
+│   ├── model/
+│   │   ├── tokenizer.py             # Custom character/subword tokenizer
+│   │   └── transformer.py           # PyTorch Causal Self-Attention Transformer
+│   ├── __init__.py
+│   └── server.py                    # FastAPI server on port 5000
+│
+├── desktop/                         # Electron Desktop Application Shell
+│   ├── assets/                      # Application icons & branding assets
+│   ├── scripts/                     # Cross-platform build automation scripts
+│   ├── package.json                 # Desktop dependencies & electron-builder
+│   ├── main.js                      # Electron main process & supervisor
+│   └── preload.js                   # Secure context-isolated IPC bridge
+│
+├── tools/                           # Bundled Build Utilities
+│   └── apache-maven-3.9.6/          # Portable Maven runtime
+│
+├── .gitignore                       # Strict untracked secrets & build ignores
+├── CONTEXT.md                       # Architectural specification ledger
+└── README.md                        # Master project documentation
+```
+
+---
+
+## Component Deep-Dive & Execution Flow
 
 1. **Document Ingestion & Parsing Pipeline**:
    - Documents (`.pdf`, `.docx`, `.txt`) are submitted asynchronously via `POST /api/documents/upload` returning an immediate tracking `jobId`.
@@ -151,7 +228,7 @@ From the project root:
 ```bash
 python -m uvicorn ai_service.server:app --host 127.0.0.1 --port 5000
 ```
-*Health Check*: Open `http://127.0.0.1:5000/health` $\rightarrow$ `{"status": "healthy", "service": "aura-scratch-transformer"}`.
+*Health Check*: Open `http://127.0.0.1:5000/health` $\rightarrow$ `{"status": "healthy", "service": "tk-vault-scratch-transformer"}`.
 
 ---
 
@@ -160,12 +237,12 @@ Using the bundled Maven wrapper:
 
 **Windows (PowerShell / CMD):**
 ```bash
-desktop\src\tools\apache-maven-3.9.6\bin\mvn.cmd -f desktop\src\backend\pom.xml spring-boot:run
+tools\apache-maven-3.9.6\bin\mvn.cmd -f backend\pom.xml spring-boot:run
 ```
 
 **Linux / macOS:**
 ```bash
-mvn -f desktop/src/backend/pom.xml spring-boot:run
+mvn -f backend/pom.xml spring-boot:run
 ```
 *Backend runs on `http://localhost:8080` with WebSocket endpoint at `ws://localhost:8080/ws/chat`.*
 
@@ -174,7 +251,7 @@ mvn -f desktop/src/backend/pom.xml spring-boot:run
 ### Step 3: Start the Vite Frontend (Port 5173)
 In a separate terminal:
 ```bash
-cd desktop/src/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -187,7 +264,7 @@ npm run dev
 <table border="0" itemscope itemtype="https://schema.org/Person">
   <tr>
     <td width="130" align="center" valign="middle">
-      <img src="https://github.com/Tharun4743.png" width="105" style="border-radius: 6px;" alt="Tharunkumar K — Full Stack Developer & AI Systems Engineer at V.S.B. Engineering College" title="Tharunkumar K — V.S.B. Engineering College (VSBEC)" itemprop="image" />
+      <img src="desktop/assets/logo.jpg" width="105" style="border-radius: 6px;" alt="Tharunkumar K — Full Stack Developer & AI Systems Engineer at V.S.B. Engineering College" title="Tharunkumar K — V.S.B. Engineering College (VSBEC)" itemprop="image" />
     </td>
     <td>
       <h3 itemprop="name">Tharunkumar K</h3>
@@ -201,7 +278,7 @@ npm run dev
       <p>
         🚀 <b>Top Flagship Engineering Projects:</b><br/>
         • 🏛️ <b>TaskManager (VSBEC IT Vault)</b> — Institutional Task Governance & LeetCode/GitHub Sync &nbsp;<a href="https://github.com/Tharun4743/Taskmanager"><img src="https://img.shields.io/badge/Code-181717?style=flat-square&logo=github&logoColor=white" alt="Code" /></a>&nbsp;<a href="https://it-taskmanager.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-10B981?style=flat-square&logo=vercel&logoColor=white" alt="Live Demo" /></a><br/>
-        • 🧠 <b>AURA</b> — Air-Gapped Local Multimodal RAG Engine & Offline AI Assistant &nbsp;<a href="https://github.com/Tharun4743/AURA-Offline-RAG"><img src="https://img.shields.io/badge/Code-181717?style=flat-square&logo=github&logoColor=white" alt="Code" /></a><br/>
+        • 🧠 <b>TK-Vault</b> — Sovereign Document Intelligence & Air-Gapped RAG Engine &nbsp;<a href="https://github.com/Tharun4743/TK-Vault"><img src="https://img.shields.io/badge/Code-181717?style=flat-square&logo=github&logoColor=white" alt="Code" /></a><br/>
         • 🪖 <b>Smart Helmet IoT</b> — SIH Top 50 Dual-Unit Motorcycle Accident Prevention System &nbsp;<a href="https://github.com/Tharun4743/AGILE-INNOVATORS-smart-helmet-"><img src="https://img.shields.io/badge/Code-181717?style=flat-square&logo=github&logoColor=white" alt="Code" /></a><br/>
         • ⚡ <b>GOAT-CE</b> — Isolated Distributed Multi-Language Code Execution Sandbox &nbsp;<a href="https://github.com/Tharun4743/GOAT-CE"><img src="https://img.shields.io/badge/Code-181717?style=flat-square&logo=github&logoColor=white" alt="Code" /></a>
       </p>
@@ -220,4 +297,4 @@ npm run dev
 
 ## 📄 License
 
-This project is proprietary and confidential. Developed by **Tharunkumar K** for high-security, air-gapped institutional environments. Unauthorized distribution or copying without explicit permission is strictly prohibited.
+This project is proprietary and confidential. Engineered by **Tharunkumar K** for high-security institutional environments. Unauthorized distribution or reproduction without explicit permission is strictly prohibited.

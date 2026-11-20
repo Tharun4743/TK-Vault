@@ -44,16 +44,19 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className="h-16 px-5 border-b border-border-default flex items-center justify-between shrink-0 select-none">
         <div className="flex items-center gap-3">
-          <div id="app-logo-slot" className="logo-container" aria-label="Company Logo Slot"></div>
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary/20">
-            A
+          <div id="app-logo-slot" className="logo-container shrink-0" aria-label="Company Logo Slot">
+            <img 
+              src="/logo.jpg" 
+              alt="TK-Vault Logo" 
+              className="w-8 h-8 rounded-xl object-cover border border-border-default shadow-xs" 
+            />
           </div>
           <div>
             <h1 className="text-sm font-bold text-text-primary tracking-tight font-display leading-none">
-              Aura RAG
+              TK-Vault
             </h1>
             <p className="text-[10px] text-text-muted font-medium mt-1">
-              Zero-Pretrained Offline AI
+              Sovereign Document Intelligence
             </p>
           </div>
         </div>

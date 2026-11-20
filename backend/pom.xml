@@ -8,11 +8,11 @@
         <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.aura</groupId>
-    <artifactId>aura-backend</artifactId>
+    <groupId>com.tkvault</groupId>
+    <artifactId>tkvault-backend</artifactId>
     <version>1.0.0</version>
-    <name>Aura - AI unified retrival assistant</name>
-    <description>Aura - AI unified retrival assistant - Offline RAG System</description>
+    <name>TK-Vault — Sovereign Document Intelligence</name>
+    <description>TK-Vault — Sovereign Document Intelligence &amp; Air-Gapped RAG Engine</description>
 
     <properties>
         <java.version>17</java.version>

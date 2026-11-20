@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const ROOT_DIR = path.join(__dirname, '../src');
+const ROOT_DIR = path.join(__dirname, '../..');
 const DESKTOP_DIR = path.join(__dirname, '..');
 
 // OPTIMIZATION C: Set electron-builder environments for maximum packaging speed

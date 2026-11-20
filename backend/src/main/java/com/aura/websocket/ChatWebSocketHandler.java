@@ -151,7 +151,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             }
 
             String context = contextBuilder.toString().trim();
-            String systemPrompt = "You are Aura - AI unified retrieval assistant. Answer STRICTLY based on the provided document context. Cite document name and page number.";
+            String systemPrompt = "You are TK-Vault - Sovereign Document Intelligence Assistant. Answer STRICTLY based on the provided document context. Cite document name and page number.";
 
             // ── Step 2: Query Dedicated Local Python AI Model Service ──────
             String generatedAnswer = pythonAiClient.generateAnswer(messageText, context, systemPrompt);
@@ -182,7 +182,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     .question(messageText)
                     .answer(responseBuffer.toString())
                     .createdAt(LocalDateTime.now())
-                    .model("Custom-ZeroPretrained-Transformer")
+                    .model("TK-Vault-ZeroPretrained-Transformer")
                     .sessionId(session.getId())
                     .sources(objectMapper.writeValueAsString(citationsList))
                     .build();

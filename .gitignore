@@ -3,12 +3,10 @@ __pycache__/
 *.pyc
 *.pyo
 .venv/
-desktop/src/.venv/
 ai_service/__pycache__/
 
 # Java / Maven
 backend/target/
-desktop/src/backend/target/
 *.class
 *.jar
 target/
@@ -18,16 +16,13 @@ target/
 *.sqlite
 *.sqlite3
 data/
-desktop/data/
-desktop/src/data/
-desktop/src/backend/uploads/
+backend/uploads/
 uploads/
 
 # Node / Frontend
 node_modules/
-desktop/src/frontend/node_modules/
+frontend/node_modules/
 frontend/dist/
-desktop/src/frontend/dist/
 frontend/.vite/
 desktop/dist/
 desktop/node_modules/
@@ -35,6 +30,7 @@ desktop/jre/
 desktop/backend/
 desktop/frontend/
 desktop/.venv/
+desktop/data/
 
 # Secrets & Environment variables
 .env
@@ -47,10 +43,7 @@ id_rsa
 
 # Models & Large Binaries
 backend/models/
-desktop/src/backend/models/
 backend/chroma_cache.json
-desktop/src/backend/chroma_cache.json
-ml/checkpoints/
 *.onnx
 *.gguf
 *.pt
@@ -65,12 +58,3 @@ Thumbs.db
 
 # Developer Tools
 tools/
-desktop/src/tools/
-
-# Web Version Local Files & Junctions
-/frontend
-/backend
-/models
-/database/
-/logs/
-/web/pids.json

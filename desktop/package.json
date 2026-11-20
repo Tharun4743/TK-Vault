@@ -1,7 +1,7 @@
 {
-  "name": "aura-desktop",
+  "name": "tk-vault",
   "version": "1.0.0",
-  "description": "Aura – AI Unified Retrieval Assistant",
+  "description": "TK-Vault — Sovereign Document Intelligence & Air-Gapped RAG Engine",
   "author": "TharunkumarK",
   "main": "main.js",
   "scripts": {
@@ -14,9 +14,9 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.aura.airetrieval.desktop",
-    "productName": "Aura",
-    "copyright": "Copyright © 2025 Aura AI",
+    "appId": "com.tkvault.desktop",
+    "productName": "TK-Vault",
+    "copyright": "Copyright © 2026 Tharunkumar K",
     "compression": "normal",
     "removePackageScripts": true,
     "nodeGypRebuild": false,

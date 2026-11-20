@@ -338,17 +338,17 @@ function startBackend() {
 
         const backendJar = isPackaged
             ? path.join(process.resourcesPath, 'backend', 'aura-backend.jar')
-            : path.join(__dirname, 'src/backend/target/aura-backend-1.0.0.jar');
+            : path.join(__dirname, '../backend/target/aura-backend-1.0.0.jar');
 
         // Fallback to snapshot JAR for dev builds ONLY
-        const snapshotJar = path.join(__dirname, 'src/backend/target/aura-backend-0.0.1-SNAPSHOT.jar');
+        const snapshotJar = path.join(__dirname, '../backend/target/aura-backend-0.0.1-SNAPSHOT.jar');
         const resolvedJar = fs.existsSync(backendJar)
             ? backendJar
             : (fs.existsSync(snapshotJar) ? snapshotJar : null);
 
         const backendCwd = isPackaged
             ? path.join(process.resourcesPath, 'backend')
-            : path.join(__dirname, 'src/backend');
+            : path.join(__dirname, '../backend');
 
         const logDir = path.join(app.getPath('userData'), 'logs');
         ensureDir(logDir);

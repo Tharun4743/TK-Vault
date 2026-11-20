@@ -292,7 +292,7 @@ export default function App() {
 
             <div>
               <h2 className="text-sm font-bold text-text-primary">
-                {tabTitles[selectedTab] || "Aura"}
+                {tabTitles[selectedTab] || "TK-Vault"}
               </h2>
             </div>
           </div>
