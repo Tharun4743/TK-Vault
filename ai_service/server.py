@@ -13,7 +13,7 @@ from tokenizer.bpe_tokenizer import CustomBPETokenizer
 from model.transformer import ScratchDecoderTransformer
 from trainer import ScratchTrainer
 
-app = FastAPI(title="AURA Zero-Pretrained AI Service", version="1.0.0")
+app = FastAPI(title="TK-Vault Zero-Pretrained AI Service", version="1.0.0")
 
 # Global instances
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -105,7 +105,7 @@ def start_training(req: TrainRequest):
             "Operating systems manage hardware memory, CPU scheduling, and process execution.",
             "Relational databases enforce referential integrity using primary and foreign keys.",
             "Computer networks utilize TCP IP protocol suites to route data packets reliably.",
-            "AURA is an offline retrieval augmented generation assistant built with zero pretrained models."
+            "TK-Vault is an offline retrieval augmented generation assistant built with zero pretrained models."
         ] * 20
 
     # Ensure tokenizer is trained

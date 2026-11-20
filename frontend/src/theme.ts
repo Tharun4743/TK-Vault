@@ -1,5 +1,5 @@
 /**
- * AURA Design System Theme Configuration
+ * TK-Vault Design System Theme Configuration
  * Decouples hardcoded Tailwind/CSS colors into reusable tokens.
  * Supports centralized changes and future dark/light mode toggle.
  */

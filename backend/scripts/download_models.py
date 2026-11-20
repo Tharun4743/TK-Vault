@@ -4,7 +4,7 @@ import sys
 
 def download_and_verify():
     print("==========================================================")
-    print("  AURA Offline Model Downloader & Cache Initializer       ")
+    print("  TK-Vault Offline Model Downloader & Cache Initializer       ")
     print("==========================================================")
     
     script_dir = os.path.dirname(os.path.abspath(__file__))

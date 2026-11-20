@@ -29,12 +29,12 @@ export function useWebSocket({ onToken, onDone, onError }: UseWebSocketOptions) 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}/ws/chat`;
 
-    console.log(`Connecting to AURA Offline WebSocket Engine at: ${socketUrl}`);
+    console.log(`Connecting to TK-Vault Offline WebSocket Engine at: ${socketUrl}`);
     const ws = new WebSocket(socketUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket connection established with AURA Core.");
+      console.log("WebSocket connection established with TK-Vault Core.");
       setIsConnected(true);
       reconnectDelayRef.current = 1000; // Reset exponential delay
     };

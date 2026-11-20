@@ -113,7 +113,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <finalName>aura-backend</finalName>
+                    <finalName>tkvault-backend</finalName>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:sqlite:./data/aura.db
+    url: jdbc:sqlite:./data/tkvault.db
     driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
@@ -13,16 +13,13 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
-aura:
+tkvault:
   ollama:
     url: http://localhost:11434
     models:
       llm: llama3
       embedding: nomic-embed-text
     gpu:
-      # CF-05 FIX: num-gpu defaulted to 0 (CPU-safe).
-      # Value 33 caused failures on all CPU-only systems (the majority of Store users).
-      # Users with NVIDIA GPUs can increase this via Settings → System Configuration.
       num-gpu: 0
       num-thread: 4
       num-ctx: 4096
@@ -35,9 +32,9 @@ aura:
   chroma:
     url: http://localhost:8001
     collections:
-      documents: aura-documents
-      audio: aura-audio
-      images: aura-images
+      documents: tkvault-documents
+      audio: tkvault-audio
+      images: tkvault-images
     top-k: 3
   upload:
     dir: ./uploads

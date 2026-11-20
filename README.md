@@ -58,7 +58,7 @@ flowchart TD
         Parser["Document Parser (Apache PDFBox & POI)"]
         AsyncProc["AsyncDocumentProcessor (Sliding Window Chunks)"]
         BM25["Okapi BM25 Lexical Engine (In-Memory)"]
-        DB[("Local SQLite Database (aura.db)")]
+        DB[("Local SQLite Database (tkvault.db)")]
     end
 
     subgraph AI ["Neural Inference Tier (PyTorch FastAPI :5000)"]
@@ -74,8 +74,8 @@ flowchart TD
 ```
 
 ### Key Modules & Implementation Details:
-- **`backend/src/main/java/com/aura/retrieval/BM25Engine.java`**: Custom in-memory Okapi BM25 engine providing instant inverted index creation, stopword filtering, and probabilistic relevance scoring.
-- **`backend/src/main/java/com/aura/websocket/ChatWebSocketHandler.java`**: Real-time token streaming handler with sub-10ms cadence, automated chat session persistence, and citation payload generation.
+- **`backend/src/main/java/com/tkvault/retrieval/BM25Engine.java`**: Custom in-memory Okapi BM25 engine providing instant inverted index creation, stopword filtering, and probabilistic relevance scoring.
+- **`backend/src/main/java/com/tkvault/websocket/ChatWebSocketHandler.java`**: Real-time token streaming handler with sub-10ms cadence, automated chat session persistence, and citation payload generation.
 - **`ai_service/model/transformer.py`**: Foundational decoder-only Transformer featuring pre-LayerNorm multi-head causal self-attention, triangular masking, and GELU feedforward projections.
 - **`frontend/src/App.tsx` & `Sidebar.tsx`**: High-productivity workspace featuring active document scoping, collapsible evidence inspector, and one-click Dark/Light mode toggle.
 

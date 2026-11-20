@@ -49,7 +49,7 @@ def stream_response(prompt_text, system_prompt=None):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if system_prompt is None or not system_prompt.strip():
-        system_prompt = "You are Aura - AI unified retrieval assistant. Answer clearly and strictly using the provided context."
+        system_prompt = "You are TK-Vault - Sovereign Document Intelligence Assistant. Answer clearly and strictly using the provided context."
 
     messages = [
         {"role": "system", "content": system_prompt},
